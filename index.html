@@ -1,0 +1,2543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tsaro — Phishing URL Detector</title>
+  <meta name="description" content="Bilingual English/Hausa phishing URL detector with AI explanations and live threat database scanning." />
+  <meta property="og:title" content="Tsaro — Phishing URL Detector" />
+  <meta property="og:description" content="Scan any suspicious link instantly. Bilingual English/Hausa. Powered by Google Safe Browsing, VirusTotal, and Claude AI." />
+  <meta name="theme-color" content="#00D4FF" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23080B12'/%3E%3Cpath d='M50 10 L82 22 L82 55 Q82 82 50 92 Q18 82 18 55 L18 22 Z' fill='none' stroke='%2300D4FF' stroke-width='4' stroke-linejoin='round'/%3E%3Cellipse cx='50' cy='54' rx='26' ry='14' fill='none' stroke='%2300D4FF' stroke-width='2.5'/%3E%3Ccircle cx='50' cy='54' r='9' fill='none' stroke='%2300D4FF' stroke-width='2'/%3E%3Cpolygon points='50,47 56,50.5 56,57.5 50,61 44,57.5 44,50.5' fill='%2300D4FF' opacity='0.2' stroke='%2300D4FF' stroke-width='1.5'/%3E%3Ccircle cx='50' cy='54' r='3' fill='%2300D4FF'/%3E%3Ccircle cx='54' cy='50' r='1.5' fill='%2300D4FF' opacity='0.7'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #080B12;
+      --surface:     #0F1420;
+      --surface-2:   #151B2B;
+      --surface-3:   #1C2438;
+      --border:      rgba(0,212,255,0.08);
+      --border-hover:rgba(0,212,255,0.2);
+      --text-primary: #E8EDF5;
+      --text-secondary:#8B95A8;
+      --text-muted:  #4A5568;
+      --accent:      #00D4FF;
+      --accent-dim:  rgba(0,212,255,0.08);
+      --accent-glow: rgba(0,212,255,0.25);
+      --red:         #FF4B4B;
+      --red-dim:     rgba(255,75,75,0.1);
+      --amber:       #FFB347;
+      --amber-dim:   rgba(255,179,71,0.1);
+      --green:       #00E896;
+      --green-dim:   rgba(0,232,150,0.08);
+      --mono:        'JetBrains Mono', monospace;
+      --sans:        'Space Grotesk', system-ui, sans-serif;
+      --radius:      12px;
+      --radius-sm:   8px;
+    }
+
+    /* ── Light mode overrides ──────────────────────────────────── */
+    [data-theme="light"] {
+      --bg:           #F0F4FF;
+      --surface:      #FFFFFF;
+      --surface-2:    #F4F7FF;
+      --surface-3:    #E8EEFF;
+      --border:       rgba(0,100,180,0.1);
+      --border-hover: rgba(0,100,180,0.25);
+      --text-primary: #0D1526;
+      --text-secondary:#4A5578;
+      --text-muted:   #8B95B8;
+      --accent:       #0099CC;
+      --accent-dim:   rgba(0,153,204,0.08);
+      --accent-glow:  rgba(0,153,204,0.2);
+      --red:          #D93025;
+      --red-dim:      rgba(217,48,37,0.08);
+      --amber:        #C97A00;
+      --amber-dim:    rgba(201,122,0,0.08);
+      --green:        #00875A;
+      --green-dim:    rgba(0,135,90,0.08);
+    }
+
+    [data-theme="light"] body {
+      background-image:
+        radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0,153,204,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 80% 80%, rgba(0,135,90,0.04) 0%, transparent 50%);
+    }
+
+    [data-theme="light"] .share-btn:hover {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.16);
+    }
+
+    /* ── Theme toggle button ───────────────────────────────────── */
+    .theme-toggle {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.25rem;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: all 0.2s;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: scale(1.08);
+    }
+    .theme-toggle svg { width: 18px; height: 18px; transition: transform 0.4s; }
+    .theme-toggle:hover svg { transform: rotate(20deg); }
+    .icon-sun  { display: none; }
+    .icon-moon { display: block; }
+    [data-theme="light"] .icon-sun  { display: block; }
+    [data-theme="light"] .icon-moon { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem 5rem;
+      background-image:
+        radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0,212,255,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 80% 80%, rgba(0,232,150,0.04) 0%, transparent 50%);
+    }
+
+    /* ── Mode Tabs (URL / File / Hash) ──────────────────────── */
+    .mode-tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 1.5rem;
+    }
+    .mode-tab {
+      flex: 1;
+      height: 38px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.2s;
+      letter-spacing: 0.01em;
+    }
+    .mode-tab svg { width: 15px; height: 15px; }
+    .mode-tab:hover { color: var(--text-secondary); background: var(--surface-3); }
+    .mode-tab.active {
+      background: var(--surface-3);
+      color: var(--accent);
+      border: 1px solid rgba(0,212,255,0.15);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    /* ── Mode panels ─────────────────────────────────────────── */
+    .mode-panel { display: none; }
+    .mode-panel.active { display: block; }
+
+    /* ── File drop zone ──────────────────────────────────────── */
+    .drop-zone {
+      border: 1.5px dashed rgba(0,212,255,0.2);
+      border-radius: var(--radius);
+      padding: 3rem 1.5rem 2.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      background: var(--surface-2);
+      position: relative;
+      overflow: hidden;
+    }
+    .drop-zone::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,212,255,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .drop-zone:hover::before, .drop-zone.dragover::before { opacity: 1; }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent);
+      border-style: solid;
+      background: rgba(0,212,255,0.03);
+      transform: scale(1.005);
+    }
+    .drop-zone.dragover {
+      box-shadow: 0 0 0 4px var(--accent-glow);
+    }
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .drop-icon-wrap {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(0,212,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.1rem;
+      transition: all 0.25s;
+    }
+    .drop-zone:hover .drop-icon-wrap,
+    .drop-zone.dragover .drop-icon-wrap {
+      background: rgba(0,212,255,0.15);
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,212,255,0.15);
+    }
+    .drop-icon-wrap svg { width: 26px; height: 26px; color: var(--accent); }
+    .drop-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 5px;
+    }
+    .drop-title span { color: var(--accent); }
+    .drop-sub { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+    .drop-badges {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .drop-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 99px;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── File info card ──────────────────────────────────────── */
+    .file-info {
+      display: none;
+      margin-top: 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      animation: fadeUp 0.3s ease both;
+    }
+    .file-info-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .file-type-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .file-type-icon.danger  { background: var(--red-dim);   color: var(--red);    border: 1px solid rgba(255,75,75,0.2); }
+    .file-type-icon.warn    { background: var(--amber-dim); color: var(--amber);  border: 1px solid rgba(255,179,71,0.2); }
+    .file-type-icon.safe    { background: var(--green-dim); color: var(--green);  border: 1px solid rgba(0,232,150,0.2); }
+    .file-type-icon.neutral { background: var(--accent-dim);color: var(--accent); border: 1px solid rgba(0,212,255,0.2); }
+    .file-details { flex: 1; min-width: 0; }
+    .file-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 500;
+      word-break: break-all;
+      margin-bottom: 3px;
+    }
+    .file-meta { font-size: 11.5px; color: var(--text-muted); line-height: 1.55; }
+    .file-rescan {
+      height: 32px;
+      padding: 0 12px;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .file-rescan:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Hash results ────────────────────────────────────────── */
+    .hash-results { display: flex; flex-direction: column; gap: 7px; }
+    .hash-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      animation: flagIn 0.3s ease both;
+      transition: border-color 0.15s;
+    }
+    .hash-row:hover { border-color: var(--border-hover); }
+    .hash-algo {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      min-width: 58px;
+      flex-shrink: 0;
+    }
+    .hash-value {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      flex: 1;
+      word-break: break-all;
+      line-height: 1.5;
+    }
+    .hash-copy {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .hash-copy:hover { border-color: var(--accent); color: var(--accent); }
+    .hash-copy svg { width: 13px; height: 13px; }
+    .hash-copy.copied { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+    /* ── File action sections (VT + AI) ─────────────────────── */
+    .file-action-section { margin-top: 2px; }
+    .file-section-divider { height: 1px; background: var(--border); margin: 12px 0; }
+    .file-action-btn {
+      width: 100%;
+      height: 42px;
+      border-radius: var(--radius);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+      border: 1px solid;
+    }
+    .file-action-btn svg { width: 15px; height: 15px; }
+    .file-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .vt-btn {
+      background: rgba(0,232,150,0.06);
+      border-color: rgba(0,232,150,0.25);
+      color: var(--green);
+    }
+    .vt-btn:hover { background: var(--green-dim); border-color: var(--green); }
+    .ai-file-btn {
+      background: transparent;
+      border-color: rgba(0,212,255,0.2);
+      color: var(--accent);
+    }
+    .ai-file-btn:hover { background: var(--accent-dim); border-color: var(--accent); }
+    .file-action-result {
+      margin-top: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      animation: fadeUp 0.3s ease both;
+    }
+    .file-action-header {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    /* ── Hash lookup tab ─────────────────────────────────────── */
+    .hash-input-wrap {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    .hash-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0 14px;
+      height: 46px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .hash-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+    .hash-input::placeholder { color: var(--text-muted); }
+    .hash-check-btn {
+      height: 46px;
+      padding: 0 20px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: var(--bg);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    .hash-check-btn:hover { opacity: 0.9; }
+    .hash-check-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .hash-result-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      font-size: 13px;
+      display: none;
+    }
+    .hash-result-header {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    /* ── Suspicious file warning ─────────────────────────────── */
+    .file-warning {
+      margin-bottom: 12px;
+      padding: 11px 13px;
+      background: var(--red-dim);
+      border: 1px solid rgba(255,75,75,0.2);
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      color: #FF8080;
+      display: none;
+      gap: 9px;
+      align-items: flex-start;
+      line-height: 1.6;
+      animation: flagIn 0.3s ease both;
+    }
+    .file-warning svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; }
+
+    /* ── Progress bar for hashing ────────────────────────────── */
+    .hash-progress {
+      display: none;
+      margin-top: 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .hash-progress-bar {
+      height: 4px;
+      background: var(--surface-3);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .hash-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--green));
+      border-radius: 99px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+    .hash-progress-file {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-family: var(--mono);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .hash-progress-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: var(--mono);
+    }
+
+    /* ── Logo ────────────────────────────────────────────────── */
+    .logo-mark {
+      display: block;
+      margin: 0 auto 1.25rem;
+      width: 72px;
+      height: 72px;
+      filter: drop-shadow(0 0 16px rgba(0,212,255,0.35));
+    }
+    .logo-wordmark {
+      display: block;
+      margin: 0 auto 6px;
+      font-family: var(--sans);
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      color: var(--accent);
+      text-align: center;
+    }
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 99px;
+      padding: 5px 13px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+    .logo-badge svg { width: 11px; height: 11px; }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      max-width: 600px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    @keyframes fadeDown {
+      from { opacity:0; transform: translateY(-16px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 99px;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .logo-badge svg { width: 13px; height: 13px; }
+
+    /* Language Toggle */
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 3px;
+      width: fit-content;
+      margin: 0 auto 1.5rem;
+      position: relative;
+    }
+    .lang-btn {
+      padding: 6px 16px;
+      border-radius: 99px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.2s;
+      position: relative;
+      z-index: 1;
+      letter-spacing: 0.03em;
+    }
+    .lang-btn.active { color: var(--bg); }
+    .lang-toggle::before {
+      content: '';
+      position: absolute;
+      top: 3px; bottom: 3px;
+      width: calc(50% - 3px);
+      background: var(--accent);
+      border-radius: 99px;
+      transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+      left: 3px;
+    }
+    .lang-toggle.ha::before { transform: translateX(100%); }
+
+    h1 {
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 0.85rem;
+      letter-spacing: -0.03em;
+    }
+    .tagline {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      font-weight: 400;
+    }
+
+    /* ── Main card ───────────────────────────────────────────── */
+    .card {
+      width: 100%;
+      max-width: 660px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 0 0 1px rgba(0,212,255,0.04), 0 24px 48px rgba(0,0,0,0.4);
+      animation: fadeUp 0.5s 0.1s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(20px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ── Scan bar (terminal style) ───────────────────────────── */
+    .scan-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .scan-bar:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .scan-prefix {
+      padding: 0 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      opacity: 0.6;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .url-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 14px 0;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-primary);
+      outline: none;
+    }
+    .url-input::placeholder { color: var(--text-muted); }
+    .check-btn {
+      height: 100%;
+      padding: 0 22px;
+      background: var(--accent);
+      border: none;
+      color: var(--bg);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+      transition: opacity 0.15s, transform 0.1s;
+      letter-spacing: 0.03em;
+    }
+    .check-btn:hover { opacity: 0.9; }
+    .check-btn:active { transform: scale(0.97); }
+    .check-btn svg { width: 15px; height: 15px; }
+
+    /* ── Example pills ───────────────────────────────────────── */
+    .examples-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pill {
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--sans);
+      font-weight: 500;
+    }
+    .pill:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+      transform: translateY(-1px);
+    }
+
+    /* ── Divider ─────────────────────────────────────────────── */
+    .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+    /* ── Empty state ─────────────────────────────────────────── */
+    .empty {
+      text-align: center;
+      padding: 2rem 0 1rem;
+      color: var(--text-muted);
+    }
+    .empty svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.25; display: block; margin: 0 auto 12px; }
+    .empty p { font-size: 14px; }
+
+    /* ── Radar scan animation ────────────────────────────────── */
+    .radar-wrap {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 0;
+    }
+    .radar-wrap.active { display: flex; }
+    .radar {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .radar-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1.5px solid var(--accent);
+      opacity: 0;
+      animation: radarPulse 2s ease-out infinite;
+    }
+    .radar-ring:nth-child(1) { width: 30px; height: 30px; animation-delay: 0s; }
+    .radar-ring:nth-child(2) { width: 52px; height: 52px; animation-delay: 0.4s; }
+    .radar-ring:nth-child(3) { width: 74px; height: 74px; animation-delay: 0.8s; }
+    @keyframes radarPulse {
+      0%   { opacity: 0.8; transform: scale(0.6); }
+      100% { opacity: 0;   transform: scale(1.1); }
+    }
+    .radar-core {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      animation: radarCorePulse 1s ease-in-out infinite alternate;
+    }
+    @keyframes radarCorePulse {
+      from { box-shadow: 0 0 0 0 var(--accent-glow); }
+      to   { box-shadow: 0 0 12px 4px var(--accent-glow); }
+    }
+    .radar-core svg { width: 10px; height: 10px; color: var(--accent); }
+
+    /* ── Result ──────────────────────────────────────────────── */
+    #result { display: none; }
+
+    .verdict-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 1.5rem;
+      animation: verdictPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes verdictPop {
+      from { opacity:0; transform: scale(0.85); }
+      to   { opacity:1; transform: scale(1); }
+    }
+    .verdict-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: box-shadow 0.3s;
+    }
+    .verdict-icon svg { width: 26px; height: 26px; }
+    .verdict-icon.danger {
+      background: var(--red-dim);
+      color: var(--red);
+      box-shadow: 0 0 20px rgba(255,75,75,0.2);
+      animation: dangerPulse 2s ease infinite;
+    }
+    @keyframes dangerPulse {
+      0%,100% { box-shadow: 0 0 20px rgba(255,75,75,0.2); }
+      50%      { box-shadow: 0 0 32px rgba(255,75,75,0.45); }
+    }
+    .verdict-icon.warn  { background: var(--amber-dim); color: var(--amber); box-shadow: 0 0 20px rgba(255,179,71,0.15); }
+    .verdict-icon.safe  { background: var(--green-dim); color: var(--green); box-shadow: 0 0 20px rgba(0,232,150,0.15); }
+
+    .verdict-text-label {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: -0.02em;
+    }
+    .verdict-text-label.danger { color: var(--red); }
+    .verdict-text-label.warn   { color: var(--amber); }
+    .verdict-text-label.safe   { color: var(--green); }
+    .verdict-url { font-size: 12px; font-family: var(--mono); color: var(--text-muted); word-break: break-all; }
+
+    /* ── Score bar ───────────────────────────────────────────── */
+    .score-section { margin-bottom: 1.5rem; }
+    .score-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .score-track {
+      height: 5px;
+      background: var(--surface-3);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .score-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      position: relative;
+    }
+    .score-fill::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 0; bottom: 0;
+      width: 30px;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.3));
+      border-radius: 99px;
+    }
+
+    /* ── Flags grid ──────────────────────────────────────────── */
+    .flags-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 520px) { .flags-grid { grid-template-columns: 1fr; } }
+
+    .flag {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 11px 13px;
+      border-radius: var(--radius-sm);
+      border: 1px solid;
+      font-size: 12.5px;
+      line-height: 1.5;
+      opacity: 0;
+      animation: flagIn 0.35s ease both;
+    }
+    .flag:nth-child(1) { animation-delay: 0.05s; }
+    .flag:nth-child(2) { animation-delay: 0.1s; }
+    .flag:nth-child(3) { animation-delay: 0.15s; }
+    .flag:nth-child(4) { animation-delay: 0.2s; }
+    .flag:nth-child(5) { animation-delay: 0.25s; }
+    .flag:nth-child(6) { animation-delay: 0.3s; }
+    @keyframes flagIn {
+      from { opacity:0; transform: translateY(8px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+    .flag svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; }
+    .flag.bad     { background: var(--red-dim);   border-color: rgba(255,75,75,0.18);  color: #FF8080; }
+    .flag.good    { background: var(--green-dim);  border-color: rgba(0,232,150,0.18); color: #00E896; }
+    .flag.neutral { background: var(--surface-2); border-color: var(--border);          color: var(--text-secondary); }
+
+    /* ── Tip box ─────────────────────────────────────────────── */
+    .tip {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 13px 15px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 10px;
+      line-height: 1.65;
+    }
+    .tip svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; color: var(--accent); }
+
+    /* ── Deep Scan ───────────────────────────────────────────── */
+    .deep-scan-section { margin-top: 10px; }
+    .deep-scan-btn {
+      width: 100%;
+      height: 44px;
+      background: rgba(0,232,150,0.06);
+      border: 1px solid rgba(0,232,150,0.2);
+      border-radius: var(--radius);
+      color: var(--green);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+    .deep-scan-btn:hover { background: var(--green-dim); border-color: var(--green); }
+    .deep-scan-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .deep-scan-btn svg { width: 15px; height: 15px; }
+    .deep-scan-box {
+      display: none;
+      margin-top: 10px;
+      background: var(--surface-2);
+      border: 1px solid rgba(0,232,150,0.15);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .deep-scan-header {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--green);
+      margin-bottom: 10px;
+    }
+    .deep-scan-header svg { width: 13px; height: 13px; }
+    .ds-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .ds-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .ds-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .ds-icon svg { width: 14px; height: 14px; }
+    .ds-icon.bad   { background: var(--red-dim);   color: var(--red); }
+    .ds-icon.warn  { background: var(--amber-dim); color: var(--amber); }
+    .ds-icon.good  { background: var(--green-dim); color: var(--green); }
+    .ds-icon.muted { background: var(--surface-3); color: var(--text-muted); }
+    .ds-content { flex: 1; }
+    .ds-source { font-weight: 600; color: var(--text-primary); margin-bottom: 2px; font-size: 13px; }
+    .ds-detail { color: var(--text-secondary); line-height: 1.5; font-size: 12.5px; }
+    .ds-loading { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; padding: 4px 0; }
+    .ds-loading svg { width: 14px; height: 14px; animation: spin 1s linear infinite; }
+
+    /* ── AI explanation ──────────────────────────────────────── */
+    .ai-section { margin-top: 10px; }
+    .ai-btn {
+      width: 100%;
+      height: 44px;
+      background: transparent;
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: var(--radius);
+      color: var(--accent);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+    .ai-btn:hover { background: var(--accent-dim); border-color: var(--accent); }
+    .ai-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .ai-btn svg { width: 15px; height: 15px; }
+    .ai-box {
+      display: none;
+      margin-top: 10px;
+      background: var(--surface-2);
+      border: 1px solid rgba(0,212,255,0.15);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .ai-box-header {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .ai-box-header svg { width: 13px; height: 13px; }
+    .ai-text { font-size: 13.5px; color: var(--text-secondary); line-height: 1.8; white-space: pre-wrap; }
+    .ai-text .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 14px;
+      background: var(--accent);
+      vertical-align: middle;
+      animation: blink 0.9s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .api-key-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .api-key-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      height: 38px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .api-key-input:focus { border-color: var(--accent); }
+    .api-key-input::placeholder { color: var(--text-muted); }
+    .api-save-btn {
+      height: 38px;
+      padding: 0 14px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(0,212,255,0.3);
+      border-radius: var(--radius-sm);
+      color: var(--accent);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .api-save-btn:hover { background: var(--accent); color: var(--bg); }
+    .api-note { font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+
+    /* ── Share button ────────────────────────────────────────── */
+    .share-btn {
+      width: 100%;
+      height: 44px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      color: var(--text-secondary);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+      margin-top: 8px;
+    }
+    .share-btn:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.16); color: var(--text-primary); }
+    .share-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* ── Scan History ────────────────────────────────────────── */
+    .history-card {
+      width: 100%;
+      max-width: 660px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 1rem;
+      display: none;
+      animation: fadeUp 0.4s ease both;
+    }
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .history-header h2 {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .history-clear {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--sans);
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .history-clear:hover { color: var(--red); }
+    .history-clear svg { width: 13px; height: 13px; }
+    .history-list { display: flex; flex-direction: column; gap: 6px; }
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      cursor: pointer;
+      transition: all 0.15s;
+      animation: slideIn 0.3s ease both;
+    }
+    @keyframes slideIn {
+      from { opacity:0; transform: translateX(-10px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+    .history-item:hover { border-color: var(--border-hover); background: var(--surface-3); transform: translateX(3px); }
+    .history-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .history-dot.danger { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .history-dot.warn   { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+    .history-dot.safe   { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .history-info { flex: 1; min-width: 0; }
+    .history-host { font-family: var(--mono); font-size: 12.5px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .history-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .history-score { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--text-secondary); flex-shrink: 0; }
+
+    /* ── How-card ────────────────────────────────────────────── */
+    .how-card {
+      width: 100%;
+      max-width: 660px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.5rem 2rem;
+      animation: fadeUp 0.5s 0.2s ease both;
+    }
+    .how-card h2 {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+    .signals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+    .signal { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--text-secondary); padding: 6px 0; font-weight: 500; }
+    .signal-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; box-shadow: 0 0 6px var(--accent); }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer { margin-top: 2.5rem; font-size: 12px; color: var(--text-muted); text-align: center; line-height: 1.8; }
+
+    /* ── Keyframes shared ────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- Theme toggle -->
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  </button>
+
+  <header class="header">
+
+    <!-- Tsaro Logo mark -->
+    <svg class="logo-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50 8 L84 21 L84 56 Q84 84 50 94 Q16 84 16 56 L16 21 Z"
+            fill="none" stroke="#00D4FF" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M50 20 L76 31 L76 56 Q76 76 50 84 Q24 76 24 56 L24 31 Z"
+            fill="none" stroke="#00D4FF" stroke-width="0.8" opacity="0.2" stroke-linejoin="round"/>
+      <!-- Eye whites -->
+      <ellipse cx="50" cy="55" rx="27" ry="13" fill="none" stroke="#00D4FF" stroke-width="2.2" opacity="0.9"/>
+      <!-- Lash lines -->
+      <line x1="30" y1="50" x2="27" y2="43" stroke="#00D4FF" stroke-width="1.2" opacity="0.45"/>
+      <line x1="38" y1="46" x2="37" y2="38" stroke="#00D4FF" stroke-width="1.2" opacity="0.45"/>
+      <line x1="50" y1="44" x2="50" y2="36" stroke="#00D4FF" stroke-width="1.2" opacity="0.45"/>
+      <line x1="62" y1="46" x2="63" y2="38" stroke="#00D4FF" stroke-width="1.2" opacity="0.45"/>
+      <line x1="70" y1="50" x2="73" y2="43" stroke="#00D4FF" stroke-width="1.2" opacity="0.45"/>
+      <!-- Iris -->
+      <circle cx="50" cy="55" r="9" fill="none" stroke="#00D4FF" stroke-width="2"/>
+      <circle cx="50" cy="55" r="6" fill="none" stroke="#00D4FF" stroke-width="0.7" opacity="0.35"/>
+      <!-- Hex pupil -->
+      <polygon points="50,49 55.2,52 55.2,58 50,61 44.8,58 44.8,52"
+               fill="#00D4FF" opacity="0.12" stroke="#00D4FF" stroke-width="1.3"/>
+      <!-- Pupil dot -->
+      <circle cx="50" cy="55" r="2.8" fill="#00D4FF"/>
+      <!-- Sparkle -->
+      <circle cx="54.5" cy="51" r="1.8" fill="#00D4FF" opacity="0.65"/>
+      <!-- Corner tick marks -->
+      <line x1="16" y1="45" x2="9" y2="45" stroke="#00D4FF" stroke-width="1.2" opacity="0.4"/>
+      <line x1="84" y1="45" x2="91" y2="45" stroke="#00D4FF" stroke-width="1.2" opacity="0.4"/>
+    </svg>
+
+    <!-- Wordmark -->
+    <span class="logo-wordmark">TSARO</span>
+
+    <!-- Badge -->
+    <div class="logo-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <span data-i18n="badge">Cybersecurity Tool</span>
+    </div>
+
+    <!-- Language Toggle -->
+    <div class="lang-toggle" id="langToggle">
+      <button class="lang-btn active" id="btnEN" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="btnHA" onclick="setLang('ha')">Hausa</button>
+    </div>
+
+    <h1><span data-i18n="h1a">Phishing URL</span> <span style="color:var(--accent)" data-i18n="h1b">Detector</span></h1>
+    <p class="tagline" data-i18n="tagline">Paste any suspicious link and we'll instantly scan it for phishing signals — no technical knowledge needed.</p>
+  </header>
+
+  <div class="card">
+
+    <!-- ── Mode Tabs ── -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tabURL" onclick="switchTab('url')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        URL
+      </button>
+      <button class="mode-tab" id="tabFile" onclick="switchTab('file')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        File
+      </button>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         PANEL 1 — URL
+    ══════════════════════════════════════════ -->
+    <div class="mode-panel active" id="panelURL">
+      <!-- Terminal-style scan bar -->
+      <div class="scan-bar">
+        <span class="scan-prefix">→</span>
+        <input class="url-input" type="text" id="urlInput"
+          placeholder="https://example-suspicious-link.com/verify"
+          autocomplete="off" spellcheck="false" />
+        <button class="check-btn" onclick="analyzeURL()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <span data-i18n="checkBtn">Check</span>
+        </button>
+      </div>
+
+      <p class="examples-label" data-i18n="examplesLabel">Try an example</p>
+      <div class="pills">
+        <span class="pill" onclick="setExample('http://paypa1-secure-login.tk/account/verify?token=abc123')">🎣 <span data-i18n="ex1">Fake PayPal</span></span>
+        <span class="pill" onclick="setExample('http://amaz0n-account-update.xyz/confirm')">🎣 <span data-i18n="ex2">Fake Amazon</span></span>
+        <span class="pill" onclick="setExample('http://bit.ly/3xFakeLnk')">🔗 <span data-i18n="ex3">Shortened URL</span></span>
+        <span class="pill" onclick="setExample('https://www.google.com')">✅ <span data-i18n="ex4">Google</span></span>
+        <span class="pill" onclick="setExample('https://github.com/cyfrin')">✅ <span data-i18n="ex5">GitHub</span></span>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Empty state -->
+      <div class="empty" id="emptyState">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+        <p data-i18n="emptyMsg">No URL analysed yet — paste a link above to begin.</p>
+      </div>
+
+      <!-- Radar scan animation -->
+      <div class="radar-wrap" id="radarWrap">
+        <div class="radar">
+          <div class="radar-ring"></div>
+          <div class="radar-ring"></div>
+          <div class="radar-ring"></div>
+          <div class="radar-core">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+    <!-- Result -->
+    <div id="result">
+      <div class="verdict-row">
+        <div class="verdict-icon" id="vIcon"></div>
+        <div>
+          <div class="verdict-text-label" id="vLabel"></div>
+          <div class="verdict-url" id="vUrl"></div>
+        </div>
+      </div>
+
+      <div class="score-section">
+        <div class="score-meta">
+          <span data-i18n="threatLevel">Threat level</span>
+          <span id="scoreNum">0 / 100</span>
+        </div>
+        <div class="score-track">
+          <div class="score-fill" id="scoreBar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="flags-grid" id="flagsGrid"></div>
+      <div class="tip" id="tipBox"></div>
+
+      <!-- Deep Scan -->
+      <div class="deep-scan-section">
+        <button class="deep-scan-btn" id="deepScanBtn" onclick="runDeepScan()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+          <span data-i18n="deepScanBtn">Run deep scan (live threat databases)</span>
+        </button>
+        <div class="deep-scan-box" id="deepScanBox">
+          <div class="deep-scan-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <span data-i18n="deepScanTitle">Live Threat Database Results</span>
+          </div>
+          <div id="deepScanResults"></div>
+        </div>
+      </div>
+
+      <!-- AI Explanation -->
+      <div class="ai-section">
+        <button class="ai-btn" id="aiBtn" onclick="triggerAI()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          Ask AI to explain this result
+        </button>
+        <div class="ai-box" id="aiBox">
+          <div class="ai-box-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            AI Analysis
+          </div>
+          <div class="ai-text" id="aiText"></div>
+        </div>
+        <div id="apiKeyPrompt" style="display:none; margin-top:10px;">
+          <div class="api-key-row">
+            <input class="api-key-input" type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off" />
+            <button class="api-save-btn" onclick="saveKey()">Save key</button>
+          </div>
+          <p class="api-note">Your Anthropic API key is stored only in your browser's session memory — never sent anywhere except the Anthropic API directly. Get a free key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);">console.anthropic.com</a></p>
+        </div>
+      </div>
+
+      <!-- Share to X -->
+      <button class="share-btn" id="shareBtn" onclick="shareToX()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        <span data-i18n="shareBtn">Share result on X</span>
+      </button>
+    </div>
+    </div><!-- end panelURL -->
+
+    <!-- ══════════════════════════════════════════
+         PANEL 2 — FILE
+    ══════════════════════════════════════════ -->
+    <div class="mode-panel" id="panelFile">
+
+      <!-- Drop zone -->
+      <div class="drop-zone" id="dropZone"
+        ondragover="handleDragOver(event)"
+        ondragleave="handleDragLeave(event)"
+        ondrop="handleDrop(event)">
+        <input type="file" id="fileInput" onchange="handleFileSelect(event)" />
+        <div class="drop-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <p class="drop-title">Drop file here or <span>click to browse</span></p>
+        <p class="drop-sub">Any file type · All hashing runs in your browser · No upload</p>
+        <div class="drop-badges">
+          <span class="drop-badge">MD5</span>
+          <span class="drop-badge">SHA-1</span>
+          <span class="drop-badge">SHA-256</span>
+          <span class="drop-badge">Extension check</span>
+        </div>
+      </div>
+
+      <!-- Hash progress bar -->
+      <div class="hash-progress" id="hashProgress">
+        <p class="hash-progress-file" id="hashProgressFile"></p>
+        <div class="hash-progress-bar">
+          <div class="hash-progress-fill" id="hashProgressFill"></div>
+        </div>
+        <p class="hash-progress-label" id="hashProgressLabel">Reading file...</p>
+      </div>
+
+      <!-- File info + hash results -->
+      <div class="file-info" id="fileInfo">
+        <div class="file-info-top">
+          <div class="file-type-icon" id="fileTypeIcon">—</div>
+          <div class="file-details">
+            <div class="file-name" id="fileName">—</div>
+            <div class="file-meta" id="fileMeta">—</div>
+          </div>
+          <button class="file-rescan" onclick="resetFilePanel()">↩ Scan another</button>
+        </div>
+
+        <!-- Suspicious file warning -->
+        <div class="file-warning" id="fileWarning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span id="fileWarningText"></span>
+        </div>
+
+        <!-- Hashes -->
+        <div class="hash-results" id="hashResults"></div>
+
+        <!-- VirusTotal Hash Check -->
+        <div class="file-action-section" id="vtSection" style="display:none;">
+          <div class="file-section-divider"></div>
+          <button class="file-action-btn vt-btn" id="vtBtn" onclick="checkFileOnVT()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+            Check file reputation on VirusTotal
+          </button>
+          <div class="file-action-result" id="vtResult" style="display:none;">
+            <div class="file-action-header" id="vtResultHeader"></div>
+            <div id="vtResultContent"></div>
+          </div>
+        </div>
+
+        <!-- AI Content Analysis -->
+        <div class="file-action-section" id="aiFileSection" style="display:none;">
+          <div class="file-section-divider"></div>
+          <button class="file-action-btn ai-file-btn" id="aiFileBtn" onclick="analyzeFileWithAI()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            Analyse file content with AI
+          </button>
+          <div class="ai-box" id="aiFileBox" style="display:none; margin-top:10px;">
+            <div class="ai-box-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+              AI File Analysis
+            </div>
+            <div class="ai-text" id="aiFileText"></div>
+          </div>
+          <!-- API key prompt for file AI -->
+          <div id="fileApiKeyPrompt" style="display:none; margin-top:10px;">
+            <div class="api-key-row">
+              <input class="api-key-input" type="password" id="fileApiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off" />
+              <button class="api-save-btn" onclick="saveFileKey()">Save key</button>
+            </div>
+            <p class="api-note">Your Anthropic API key is stored in session memory only. Get one free at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);">console.anthropic.com</a></p>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- end panelFile -->
+
+
+
+  </div><!-- end .card -->
+
+  <!-- Scan History -->
+  <div class="history-card" id="historyCard">
+    <div class="history-header">
+      <h2 data-i18n="historyTitle">Recent Scans</h2>
+      <button class="history-clear" onclick="clearHistory()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        <span data-i18n="historyClear">Clear</span>
+      </button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <!-- How it works -->
+  <div class="how-card">
+    <h2 data-i18n="whatWeCheck">What we check</h2>
+    <div class="signals">
+      <div class="signal"><span class="signal-dot"></span><span data-i18n="sig1">HTTPS encryption</span></div>
+      <div class="signal"><span class="signal-dot"></span><span data-i18n="sig2">Suspicious TLDs</span></div>
+      <div class="signal"><span class="signal-dot"></span><span data-i18n="sig3">Brand impersonation</span></div>
+      <div class="signal"><span class="signal-dot"></span><span data-i18n="sig4">URL shorteners</span></div>
+      <div class="signal"><span class="signal-dot"></span><span data-i18n="sig5">High-risk keywords</span></div>
+      <div class="signal"><span class="signal-dot"></span><span data-i18n="sig6">Subdomain depth</span></div>
+    </div>
+  </div>
+
+  <footer data-i18n="footer">
+    Built for general public awareness &nbsp;·&nbsp; No data is stored or sent to any server &nbsp;·&nbsp; All checks run in your browser
+  </footer>
+
+  <script>
+    // ── Theme Toggle ──────────────────────────────────────────────
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isLight = html.getAttribute('data-theme') === 'light';
+      html.setAttribute('data-theme', isLight ? 'dark' : 'light');
+      localStorage.setItem('tsaro-theme', isLight ? 'dark' : 'light');
+    }
+
+    // Apply saved theme on load
+    (function() {
+      const saved = localStorage.getItem('tsaro-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+
+    // ── i18n ─────────────────────────────────────────────────────
+    let currentLang = 'en';
+
+    const STRINGS = {
+      en: {
+        badge: 'Cybersecurity Tool',
+        h1a: 'Phishing URL', h1b: 'Detector',
+        tagline: "Paste any suspicious link and we'll instantly scan it for phishing signals — no technical knowledge needed.",
+        checkBtn: 'Check',
+        examplesLabel: 'Try an example',
+        ex1: 'Fake PayPal', ex2: 'Fake Amazon', ex3: 'Shortened URL', ex4: 'Google', ex5: 'GitHub',
+        emptyMsg: 'No URL analysed yet — paste a link above to begin.',
+        threatLevel: 'Threat level',
+        whatWeCheck: 'What we check',
+        sig1: 'HTTPS encryption', sig2: 'Suspicious TLDs', sig3: 'Brand impersonation',
+        sig4: 'URL shorteners', sig5: 'High-risk keywords', sig6: 'Subdomain depth',
+        footer: 'Built for general public awareness · No data is stored or sent to any server · All checks run in your browser',
+        aiBtn: 'Ask AI to explain this result',
+        aiAnalysis: 'AI Analysis',
+        aiKeyNote: 'Your Anthropic API key is stored only in your browser\'s session memory — never sent anywhere except the Anthropic API directly. Get a free key at',
+        aiSaveKey: 'Save key',
+        aiKeyPlaceholder: 'sk-ant-api03-...',
+        aiAnalysing: 'Analysing...',
+        aiReady: 'AI explanation ready',
+        shareBtn: 'Share result on X',
+        shareDanger: (host, score) => `🚨 Phishing alert!\n\nI just scanned "${host}" using a Phishing URL Detector.\n\n⚠️ Threat score: ${score}/100\n🔴 Verdict: High risk — likely phishing\n\nStay safe online. Don't click suspicious links!\n\n#CyberSecurity #Phishing #StaySafe`,
+        shareWarn:  (host, score) => `⚠️ Suspicious URL detected!\n\nI scanned "${host}" — it raised some red flags.\n\n🟡 Threat score: ${score}/100\n🟡 Verdict: Suspicious — proceed with caution\n\nAlways verify links before clicking!\n\n#CyberSecurity #Phishing #OnlineSafety`,
+        shareSafe:  (host, score) => `✅ URL scan complete!\n\nI checked "${host}" with a Phishing URL Detector.\n\n🟢 Threat score: ${score}/100\n🟢 Verdict: Looks safe — no major red flags\n\nStay vigilant online!\n\n#CyberSecurity #OnlineSafety`,
+        historyTitle: 'Recent Scans',
+        historyClear: 'Clear',
+        historyAgo: (m) => m < 1 ? 'just now' : m === 1 ? '1 min ago' : `${m} min ago`,
+        deepScanBtn: 'Run deep scan (live threat databases)',
+        deepScanTitle: 'Live Threat Database Results',
+        deepScanLoading: 'Checking Google Safe Browsing and VirusTotal...',
+        dsSafeBrowsingName: 'Google Safe Browsing',
+        dsVirusTotalName: 'VirusTotal',
+        dsFlaggedKnown: 'Flagged as a known threat',
+        dsNotFlagged: 'Not found in known threat database',
+        dsUnavailable: 'Check unavailable — backend not configured',
+        dsPending: 'First-time scan submitted — full results in ~60 seconds. Try again shortly.',
+        dsEnginesFlagged: (m, t) => `${m} of ${t} security engines flagged this URL`,
+        dsEnginesClean: (t) => `0 of ${t} security engines flagged this URL`,
+        dsError: 'Could not reach deep scan service. Please try again.',
+        // verdicts
+        verdictDanger: 'High risk — likely phishing',
+        verdictWarn: 'Suspicious — proceed with caution',
+        verdictSafe: 'Looks safe — no major red flags',
+        // tips
+        tipDanger: 'Do <strong>not</strong> click this link or enter any credentials. Report phishing to <strong>reportphishing@apwg.org</strong> or forward suspicious SMS to <strong>7726</strong>.',
+        tipWarn: 'Verify this link independently before clicking. Go directly to the official website by <strong>typing the address yourself</strong> rather than clicking any link.',
+        tipSafe: 'No obvious phishing signals found. Still, no automated tool is perfect — when in doubt, navigate to the site manually.',
+        // flags
+        flagNoHttps: 'No HTTPS — data transmitted unencrypted',
+        flagHttps: 'HTTPS encryption is active',
+        flagSuspTld: (tld) => `Suspicious TLD "${tld}" — popular with scammers`,
+        flagGoodTld: 'Domain extension looks legitimate',
+        flagLookalike: (b) => `Lookalike substitution targeting "${b}"`,
+        flagDirectBrand: (b) => `"${b}" used in a non-official domain`,
+        flagNoBrand: 'No brand impersonation detected',
+        flagShortener: 'URL shortener hides the real destination',
+        flagNoShortener: 'No URL shortener detected',
+        flagKeywords: (w) => `Risky keywords: "${w}"`,
+        flagOneKeyword: (w) => `Keyword "${w}" found — not conclusive alone`,
+        flagNoKeywords: 'No high-risk keywords in URL',
+        flagSubdomain: (n) => `${n} subdomain levels — used to mimic legit sites`,
+        flagNoSubdomain: 'Subdomain depth is normal',
+      },
+      ha: {
+        badge: 'Kayan Aikin Tsaron Yanar Gizo',
+        h1a: 'Gano', h1b: 'Phishing URL',
+        tagline: "Liƙa duk wani link ko fayil da kake zargi a nan kasa, za mu bincika nan take domin gano duk wani alamun zamba ko akasin haka",
+        checkBtn: 'Bincika',
+        examplesLabel: 'Gwada misali',
+        ex1: 'Karya PayPal', ex2: 'Karya Amazon', ex3: 'URL da aka takaitawa', ex4: 'Google', ex5: 'GitHub',
+        emptyMsg: 'Ba a bincika wani URL ba tukuna — liƙa link a sama don fara.',
+        threatLevel: 'Matakin haɗari',
+        whatWeCheck: 'Abin da muke bincikawa',
+        sig1: 'Ɓoye-ɓoyen HTTPS', sig2: 'Bayanan gidan yanar gizo masu zargi', sig3: 'Kwaikwayon alama',
+        sig4: 'Takaitattun URL', sig5: 'Kalmomi masu haɗari', sig6: 'Zurfi na subdomain',
+        footer: 'An gina don wayar da kan jama\'a · Babu ajiye bayanan da ake aikawa zuwa wani uwar garke · Duk binciken yana gudana a cikin browser ɗinka',
+        aiBtn: 'Tambayi AI ta bayyana sakamakon',
+        aiAnalysis: 'Nazarin AI',
+        aiKeyNote: 'Ana adana maɓallin Anthropic API ɗinka a cikin ƙwaƙwalwar session na browser ɗinka kawai — ba a aika shi ko\'ina face Anthropic API kai tsaye ba. Samu maɓalli kyauta a',
+        aiSaveKey: 'Ajiye maɓalli',
+        aiKeyPlaceholder: 'sk-ant-api03-...',
+        aiAnalysing: 'Ana nazari...',
+        aiReady: 'Bayyanar AI ta shiryu',
+        shareBtn: 'Raba sakamakon a X',
+        shareDanger: (host, score) => `🚨 Gargaɗin Phishing!\n\nNa yi bincike a "${host}" ta amfani da Gano Phishing URL.\n\n⚠️ Matakin haɗari: ${score}/100\n🔴 Sakamako: Haɗarin da ya fi — phishing ne mai yiwuwa\n\nKuna da aminci a yanar gizo. Kar ku danna links masu zargi!\n\n#CyberSecurity #Phishing #KunaDaAminci`,
+        shareWarn:  (host, score) => `⚠️ An gano URL mai zargi!\n\nNa yi bincike a "${host}" — ya nuna wasu alamun gargaɗi.\n\n🟡 Matakin haɗari: ${score}/100\n🟡 Sakamako: Mai zargi — ci gaba da hankali\n\nKoyaushe tabbatar da links kafin ku danna!\n\n#CyberSecurity #AminciBayanar`,
+        shareSafe:  (host, score) => `✅ Binciken URL ya kammala!\n\nNa bincika "${host}" da Gano Phishing URL.\n\n🟢 Matakin haɗari: ${score}/100\n🟢 Sakamako: Ya yi kama da lafiya — babu manyan alamun haɗari\n\nKoyaushe ku kasance a faɗake a yanar gizo!\n\n#CyberSecurity #AminciBayanar`,
+        historyTitle: 'Bincike na Kwanan Nan',
+        historyClear: 'Share',
+        historyAgo: (m) => m < 1 ? 'yanzu' : m === 1 ? 'minti 1 da ya wuce' : `minti ${m} da ya wuce`,
+        deepScanBtn: 'Gudanar da bincike mai zurfi (bayanan tsaro na zahiri)',
+        deepScanTitle: 'Sakamakon Bayanan Tsaro na Zahiri',
+        deepScanLoading: 'Ana bincika Google Safe Browsing da VirusTotal...',
+        dsSafeBrowsingName: 'Google Safe Browsing',
+        dsVirusTotalName: 'VirusTotal',
+        dsFlaggedKnown: 'An yi alama a matsayin sanannen haɗari',
+        dsNotFlagged: 'Ba a samu a cikin sanannun bayanan haɗari ba',
+        dsUnavailable: 'Bincike ba ya samuwa — ba a saita uwar garken ba',
+        dsPending: 'An gabatar da bincike na farko — cikakken sakamako a cikin daƙiƙa 60. Sake gwadawa kaɗan bayan haka.',
+        dsEnginesFlagged: (m, t) => `Injinan tsaro ${m} daga cikin ${t} sun yi alama da wannan URL`,
+        dsEnginesClean: (t) => `Babu wani daga cikin injinan tsaro ${t} da ya yi alama da wannan URL`,
+        dsError: 'Ba a iya isa ga sabis na bincike mai zurfi ba. Da fatan za a sake gwadawa.',
+        // verdicts
+        verdictDanger: 'Haɗarin da ya fi — phishing ne mai yiwuwa',
+        verdictWarn: 'Mai zargi — ci gaba da hankali',
+        verdictSafe: 'Ya yi kama da lafiya — babu manyan alamun haɗari',
+        // tips
+        tipDanger: '<strong>Kada</strong> ka danna wannan link ko ka shigar da wani bayani. Kai rahoto game da phishing zuwa <strong>reportphishing@apwg.org</strong> ko tura SMS mai zargi zuwa <strong>7726</strong>.',
+        tipWarn: 'Tabbatar da wannan link da kanka kafin ka danna. Je kai tsaye zuwa gidan yanar gizo na hukuma ta hanyar <strong>rubuta adireshin da kanka</strong> maimakon danna wani link.',
+        tipSafe: 'Ba a sami alamun phishing da ke bayyane ba. Duk da haka, babu wani kayan aiki na atomatik da ya kamala — idan kana shakka, kai tsaye zuwa shafin.',
+        // flags
+        flagNoHttps: 'Babu HTTPS — ana aika bayanan ba tare da ɓoyewa ba',
+        flagHttps: 'HTTPS encryption na aiki',
+        flagSuspTld: (tld) => `Bayanan gidan yanar gizo mai zargi "${tld}" — mashahurin amfani ga masu zamba`,
+        flagGoodTld: 'Bayanan gidan yanar gizo ya yi kama da na asali',
+        flagLookalike: (b) => `An gano maye gurbin harafi don kwaikwayon "${b}"`,
+        flagDirectBrand: (b) => `"${b}" an yi amfani da shi a cikin gidan yanar gizo maras hukuma`,
+        flagNoBrand: 'Ba a gano kwaikwayowar alamar kasuwanci ba',
+        flagShortener: 'Takaitar URL ta ɓoye maƙasudi na ainihi',
+        flagNoShortener: 'Ba a gano takaitar URL ba',
+        flagKeywords: (w) => `Kalmomi masu haɗari: "${w}"`,
+        flagOneKeyword: (w) => `An sami kalmar "${w}" — ba ta isa ta kadai ba`,
+        flagNoKeywords: 'Babu kalmomin haɗari a cikin URL',
+        flagSubdomain: (n) => `Matakan subdomain ${n} — ana amfani da su don kwaikwayon shafuka na asali`,
+        flagNoSubdomain: 'Zurfi na subdomain ya yi daidai',
+      }
+    };
+
+    function setLang(lang) {
+      currentLang = lang;
+      document.getElementById('btnEN').classList.toggle('active', lang === 'en');
+      document.getElementById('btnHA').classList.toggle('active', lang === 'ha');
+      document.getElementById('langToggle').classList.toggle('ha', lang === 'ha');
+      const S = STRINGS[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (S[key] && typeof S[key] === 'string') el.innerHTML = S[key];
+      });
+      // update placeholder
+      document.getElementById('urlInput').placeholder =
+        lang === 'ha' ? 'https://misali-link-mai-zargi.com/tabbatarwa' : 'https://example-suspicious-link.com/verify';
+      // update AI button if not mid-analysis
+      const aiBtn = document.getElementById('aiBtn');
+      if (!aiBtn.disabled) aiBtn.querySelector('span') && (aiBtn.childNodes[aiBtn.childNodes.length-1].textContent = ' ' + S.aiBtn);
+      // refresh history timestamps in new language
+      renderHistory();
+    }
+
+    // ── SVG icons ────────────────────────────────────────────────
+    const ICONS = {
+      shield_x: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>`,
+      shield_warn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+      shield_ok: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>`,
+      check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+      x: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+      minus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+      bulb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>`,
+    };
+
+    function setExample(url) {
+      document.getElementById('urlInput').value = url;
+      analyzeURL();
+    }
+
+    function analyzeURL() {
+      const raw = document.getElementById('urlInput').value.trim();
+      if (!raw) return;
+
+      let url = raw;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'http://' + url;
+
+      let parsed;
+      try { parsed = new URL(url); }
+      catch (e) { alert('Invalid URL. Please include the full link starting with http:// or https://'); return; }
+
+      const hostname = parsed.hostname.toLowerCase();
+      const fullUrl  = url.toLowerCase();
+      const protocol = parsed.protocol;
+      const S = STRINGS[currentLang];
+
+      let flags = [], score = 0;
+
+      // 1. HTTPS
+      if (protocol === 'http:') {
+        flags.push({ type: 'bad', icon: 'x', text: S.flagNoHttps });
+        score += 20;
+      } else {
+        flags.push({ type: 'good', icon: 'check', text: S.flagHttps });
+      }
+
+      // 2. Suspicious TLDs
+      const suspTLDs = ['.tk','.ml','.ga','.cf','.gq','.xyz','.top','.click','.loan','.work','.racing','.bid'];
+      const matchedTLD = suspTLDs.find(t => hostname.endsWith(t));
+      if (matchedTLD) {
+        flags.push({ type: 'bad', icon: 'x', text: S.flagSuspTld(matchedTLD) });
+        score += 25;
+      } else {
+        flags.push({ type: 'good', icon: 'check', text: S.flagGoodTld });
+      }
+
+      // 3. Brand lookalike
+      const brands = ['paypal','amazon','google','facebook','instagram','netflix','apple','microsoft','bank','binance','coinbase'];
+      const typos = { '0':'o', '1':'l', '@':'a', '3':'e', '5':'s', '4':'a' };
+      let normalised = hostname;
+      for (const [k, v] of Object.entries(typos)) normalised = normalised.replaceAll(k, v);
+      const lookalike = brands.find(b => normalised.includes(b) && !hostname.includes(b));
+      if (lookalike) {
+        flags.push({ type: 'bad', icon: 'x', text: S.flagLookalike(lookalike) });
+        score += 30;
+      } else {
+        const directBrand = brands.find(b => hostname.includes(b) && !hostname.endsWith('.' + b + '.com') && !hostname.endsWith(b + '.com'));
+        if (directBrand) {
+          flags.push({ type: 'bad', icon: 'x', text: S.flagDirectBrand(directBrand) });
+          score += 20;
+        } else {
+          flags.push({ type: 'good', icon: 'check', text: S.flagNoBrand });
+        }
+      }
+
+      // 4. URL shorteners
+      const shorteners = ['bit.ly','tinyurl.com','t.co','goo.gl','ow.ly','rb.gy','short.io','cutt.ly','is.gd'];
+      if (shorteners.some(s => hostname === s || hostname.endsWith('.' + s))) {
+        flags.push({ type: 'bad', icon: 'x', text: S.flagShortener });
+        score += 15;
+      } else {
+        flags.push({ type: 'neutral', icon: 'minus', text: S.flagNoShortener });
+      }
+
+      // 5. Suspicious keywords
+      const badWords = ['verify','confirm','secure','update','login','signin','account','password','wallet','claim','free','prize','urgent','suspend'];
+      const found = badWords.filter(w => fullUrl.includes(w));
+      if (found.length >= 2) {
+        flags.push({ type: 'bad', icon: 'x', text: S.flagKeywords(found.slice(0,3).join('", "')) });
+        score += 20;
+      } else if (found.length === 1) {
+        flags.push({ type: 'neutral', icon: 'minus', text: S.flagOneKeyword(found[0]) });
+        score += 5;
+      } else {
+        flags.push({ type: 'good', icon: 'check', text: S.flagNoKeywords });
+      }
+
+      // 6. Subdomain depth
+      const parts = hostname.split('.');
+      if (parts.length > 4) {
+        flags.push({ type: 'bad', icon: 'x', text: S.flagSubdomain(parts.length) });
+        score += 15;
+      } else {
+        flags.push({ type: 'good', icon: 'check', text: S.flagNoSubdomain });
+      }
+
+      score = Math.min(score, 100);
+
+      let level, cls, barColor, iconKey, tipText;
+      if (score >= 55) {
+        level    = S.verdictDanger;
+        cls      = 'danger';
+        barColor = '#e05252';
+        iconKey  = 'shield_x';
+        tipText  = S.tipDanger;
+      } else if (score >= 25) {
+        level    = S.verdictWarn;
+        cls      = 'warn';
+        barColor = '#e0a033';
+        iconKey  = 'shield_warn';
+        tipText  = S.tipWarn;
+      } else {
+        level    = S.verdictSafe;
+        cls      = 'safe';
+        barColor = '#4caf82';
+        iconKey  = 'shield_ok';
+        tipText  = S.tipSafe;
+      }
+
+      // Render
+      // Show radar briefly then reveal result
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('radarWrap').classList.add('active');
+      setTimeout(() => {
+        document.getElementById('radarWrap').classList.remove('active');
+        document.getElementById('result').style.display = 'block';
+      }, 900);
+
+      // Reset AI section
+      document.getElementById('aiBox').style.display = 'none';
+      document.getElementById('aiText').innerHTML = '';
+      document.getElementById('apiKeyPrompt').style.display = 'none';
+      const aiBtn = document.getElementById('aiBtn');
+      aiBtn.disabled = false;
+      aiBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg> ${STRINGS[currentLang].aiBtn}`;
+
+      // Reset Deep Scan section
+      document.getElementById('deepScanBox').style.display = 'none';
+      document.getElementById('deepScanResults').innerHTML = '';
+      document.getElementById('deepScanBtn').disabled = false;
+
+      // Save scan context for AI
+      lastScanData = {
+        url, hostname, score, verdict: level, cls,
+        flagTexts: flags.map(f => f.text)
+      };
+
+      // Add to scan history
+      addToHistory({ url, hostname, score, cls });
+
+      document.getElementById('vIcon').className = `verdict-icon ${cls}`;
+      document.getElementById('vIcon').innerHTML = ICONS[iconKey];
+      document.getElementById('vLabel').className = `verdict-text-label ${cls}`;
+      document.getElementById('vLabel').textContent = level;
+      document.getElementById('vUrl').textContent = hostname;
+
+      document.getElementById('scoreNum').textContent = score + ' / 100';
+      const bar = document.getElementById('scoreBar');
+      bar.style.background = barColor;
+      requestAnimationFrame(() => { bar.style.width = score + '%'; });
+
+      document.getElementById('flagsGrid').innerHTML = flags.map(f => `
+        <div class="flag ${f.type}">
+          ${ICONS[f.icon]}
+          <span>${f.text}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('tipBox').innerHTML = `${ICONS.bulb}<span>${tipText}</span>`;
+    }
+
+    document.getElementById('urlInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') analyzeURL();
+    });
+
+    // ── VirusTotal File Hash Check ────────────────────────────────
+    async function checkFileOnVT() {
+      if (!currentFileData) return;
+      const btn    = document.getElementById('vtBtn');
+      const result = document.getElementById('vtResult');
+      const header = document.getElementById('vtResultHeader');
+      const content= document.getElementById('vtResultContent');
+
+      btn.disabled = true;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg> Checking VirusTotal...`;
+      result.style.display = 'none';
+
+      try {
+        const res = await fetch('/.netlify/functions/check-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hash: currentFileData.sha256, type: 'SHA-256' }),
+        });
+        if (!res.ok) throw new Error('Backend unavailable');
+        const data = await res.json();
+        const vt = data.virusTotal;
+
+        result.style.display = 'block';
+        if (!vt || !vt.available) {
+          header.style.color = 'var(--text-muted)';
+          header.textContent = 'VirusTotal unavailable';
+          content.innerHTML = `<p style="font-size:12.5px;color:var(--text-secondary);margin-top:4px;">Backend not configured. <a href="https://www.virustotal.com/gui/search/${currentFileData.sha256}" target="_blank" rel="noopener" style="color:var(--accent);">Search manually on VirusTotal ↗</a></p>`;
+        } else if (vt.pending) {
+          header.style.color = 'var(--amber)';
+          header.textContent = '⏳ First-time scan submitted';
+          content.innerHTML = `<p style="font-size:12.5px;color:var(--text-secondary);margin-top:4px;">VirusTotal is scanning this file for the first time. Check again in ~60 seconds.</p>`;
+        } else if (vt.malicious > 0 || vt.suspicious > 0) {
+          header.style.color = 'var(--red)';
+          header.textContent = `🚨 Flagged by ${vt.malicious + vt.suspicious} of ${vt.totalEngines} engines`;
+          content.innerHTML = `<p style="font-size:12.5px;color:var(--text-secondary);margin-top:4px;">${vt.malicious} engine(s) marked it as <strong style="color:var(--red)">malicious</strong>, ${vt.suspicious} as <strong style="color:var(--amber)">suspicious</strong>. Do not open this file.</p>`;
+        } else {
+          header.style.color = 'var(--green)';
+          header.textContent = `✅ Clean — 0 of ${vt.totalEngines} engines flagged this file`;
+          content.innerHTML = `<p style="font-size:12.5px;color:var(--text-secondary);margin-top:4px;">No security engines have flagged this file as malicious in VirusTotal's database.</p>`;
+        }
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> VirusTotal check complete`;
+        btn.disabled = false;
+      } catch(err) {
+        result.style.display = 'block';
+        header.style.color = 'var(--text-muted)';
+        header.textContent = 'Check unavailable';
+        content.innerHTML = `<p style="font-size:12.5px;color:var(--text-secondary);margin-top:4px;">Could not reach backend. <a href="https://www.virustotal.com/gui/search/${currentFileData.sha256}" target="_blank" rel="noopener" style="color:var(--accent);">Search manually on VirusTotal ↗</a></p>`;
+        btn.innerHTML = `Check file reputation on VirusTotal`;
+        btn.disabled = false;
+      }
+    }
+
+    // ── AI File Content Analysis ──────────────────────────────────
+    function saveFileKey() {
+      const val = document.getElementById('fileApiKeyInput').value.trim();
+      if (!val.startsWith('sk-ant-')) { alert('Invalid key format. Must start with sk-ant-'); return; }
+      sessionApiKey = val;
+      document.getElementById('fileApiKeyPrompt').style.display = 'none';
+      runFileAI();
+    }
+
+    function analyzeFileWithAI() {
+      if (!currentFileData) return;
+      if (!sessionApiKey) {
+        document.getElementById('fileApiKeyPrompt').style.display = 'block';
+        document.getElementById('fileApiKeyInput').focus();
+        return;
+      }
+      runFileAI();
+    }
+
+    async function runFileAI() {
+      if (!currentFileData) return;
+      const { file, textContent } = currentFileData;
+      const btn  = document.getElementById('aiFileBtn');
+      const box  = document.getElementById('aiFileBox');
+      const text = document.getElementById('aiFileText');
+
+      btn.disabled = true;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg> Analysing...`;
+      box.style.display = 'block';
+      text.innerHTML = '<span class="cursor"></span>';
+
+      const snippet = textContent
+        ? textContent.slice(0, 4000)
+        : '[File content could not be read — binary or too large]';
+
+      const prompt = `You are a cybersecurity analyst reviewing a file for threats.
+
+File name: ${file.name}
+File type: ${file.type || 'unknown'}
+File size: ${(file.size/1024).toFixed(1)} KB
+
+File content (first 4000 characters):
+---
+${snippet}
+---
+
+Analyse this file for:
+1. Phishing language or social engineering
+2. Suspicious URLs or domains embedded in the content
+3. Malicious code patterns (if it is a script)
+4. Sensitive data exposure (passwords, keys, tokens)
+5. Overall threat assessment
+
+Give a SHORT plain-English verdict in 4–6 sentences. State clearly if it looks safe or suspicious and why. No bullet points — natural sentences only.`;
+
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': sessionApiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 400,
+            stream: true,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'API error'); }
+
+        const reader  = res.body.getReader();
+        const decoder = new TextDecoder();
+        let output = '';
+        text.innerHTML = '<span class="cursor"></span>';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const lines = decoder.decode(value).split('\n').filter(l => l.startsWith('data: '));
+          for (const line of lines) {
+            const d = line.slice(6);
+            if (d === '[DONE]') continue;
+            try {
+              const json = JSON.parse(d);
+              if (json.type === 'content_block_delta' && json.delta?.text) {
+                output += json.delta.text;
+                text.innerHTML = output + '<span class="cursor"></span>';
+              }
+            } catch {}
+          }
+        }
+        text.innerHTML = output;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> AI analysis complete`;
+        btn.disabled = false;
+      } catch(err) {
+        text.innerHTML = `<span style="color:var(--red)">Error: ${err.message}. Check your API key and try again.</span>`;
+        btn.innerHTML = `Analyse file content with AI`;
+        btn.disabled = false;
+      }
+    }
+
+    // ── Deep Scan (calls Netlify backend function) ─────────────────
+    async function runDeepScan() {
+      if (!lastScanData) return;
+
+      const btn = document.getElementById('deepScanBtn');
+      const box = document.getElementById('deepScanBox');
+      const results = document.getElementById('deepScanResults');
+      const S = STRINGS[currentLang];
+
+      btn.disabled = true;
+      box.style.display = 'block';
+      results.innerHTML = `
+        <div class="ds-loading">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg>
+          ${S.deepScanLoading}
+        </div>
+      `;
+
+      try {
+        const res = await fetch('/.netlify/functions/check-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: lastScanData.url }),
+        });
+
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        const data = await res.json();
+
+        let rows = '';
+
+        // Safe Browsing row
+        const sb = data.safeBrowsing;
+        if (!sb || !sb.available) {
+          rows += dsRow('muted', icon('minus'), S.dsSafeBrowsingName, S.dsUnavailable);
+        } else if (sb.flagged) {
+          rows += dsRow('bad', icon('x'), S.dsSafeBrowsingName, `${S.dsFlaggedKnown} (${(sb.threatTypes || []).join(', ')})`);
+        } else {
+          rows += dsRow('good', icon('check'), S.dsSafeBrowsingName, S.dsNotFlagged);
+        }
+
+        // VirusTotal row
+        const vt = data.virusTotal;
+        if (!vt || !vt.available) {
+          rows += dsRow('muted', icon('minus'), S.dsVirusTotalName, S.dsUnavailable);
+        } else if (vt.pending) {
+          rows += dsRow('warn', icon('minus'), S.dsVirusTotalName, S.dsPending);
+        } else if (vt.malicious > 0 || vt.suspicious > 0) {
+          rows += dsRow('bad', icon('x'), S.dsVirusTotalName, S.dsEnginesFlagged(vt.malicious + vt.suspicious, vt.totalEngines));
+        } else {
+          rows += dsRow('good', icon('check'), S.dsVirusTotalName, S.dsEnginesClean(vt.totalEngines));
+        }
+
+        results.innerHTML = rows;
+        btn.disabled = false;
+
+      } catch (err) {
+        results.innerHTML = `<div class="ds-row"><div class="ds-content"><span style="color:var(--red)">${S.dsError}</span></div></div>`;
+        btn.disabled = false;
+      }
+    }
+
+    function dsRow(cls, iconSvg, source, detail) {
+      return `
+        <div class="ds-row">
+          <div class="ds-icon ${cls}">${iconSvg}</div>
+          <div class="ds-content">
+            <div class="ds-source">${source}</div>
+            <div class="ds-detail">${detail}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function icon(key) {
+      const icons = {
+        check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+        x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+        minus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+      };
+      return icons[key] || '';
+    }
+
+    // ── Scan History ─────────────────────────────────────────────
+    let scanHistory = []; // session-only, max 10
+
+    function addToHistory(data) {
+      scanHistory.unshift({ ...data, timestamp: Date.now() });
+      if (scanHistory.length > 10) scanHistory = scanHistory.slice(0, 10);
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const card = document.getElementById('historyCard');
+      const list = document.getElementById('historyList');
+      const S = STRINGS[currentLang];
+
+      if (scanHistory.length === 0) {
+        card.style.display = 'none';
+        return;
+      }
+      card.style.display = 'block';
+
+      list.innerHTML = scanHistory.map((item, i) => {
+        const minsAgo = Math.floor((Date.now() - item.timestamp) / 60000);
+        return `
+          <div class="history-item" onclick="rescanFromHistory(${i})">
+            <span class="history-dot ${item.cls}"></span>
+            <div class="history-info">
+              <div class="history-host">${item.hostname}</div>
+              <div class="history-meta">${S.historyAgo(minsAgo)}</div>
+            </div>
+            <span class="history-score">${item.score}/100</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function rescanFromHistory(index) {
+      const item = scanHistory[index];
+      if (!item) return;
+      document.getElementById('urlInput').value = item.url;
+      analyzeURL();
+    }
+
+    function clearHistory() {
+      scanHistory = [];
+      renderHistory();
+    }
+
+    // ── Share to X ───────────────────────────────────────────────
+    function shareToX() {
+      if (!lastScanData) return;
+      const { hostname, score, cls } = lastScanData;
+      const S = STRINGS[currentLang];
+      let tweet;
+      if (cls === 'danger') tweet = S.shareDanger(hostname, score);
+      else if (cls === 'warn') tweet = S.shareWarn(hostname, score);
+      else tweet = S.shareSafe(hostname, score);
+      const tweetUrl = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(tweet);
+      window.open(tweetUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    // ── AI Explanation ──────────────────────────────────────────
+    let sessionApiKey = '';
+    let lastScanData  = null;
+
+    function saveKey() {
+      const val = document.getElementById('apiKeyInput').value.trim();
+      if (!val.startsWith('sk-ant-')) { alert('Invalid key format. Must start with sk-ant-'); return; }
+      sessionApiKey = val;
+      document.getElementById('apiKeyPrompt').style.display = 'none';
+      runAI();
+    }
+
+    function triggerAI() {
+      if (!lastScanData) return;
+      if (!sessionApiKey) {
+        document.getElementById('apiKeyPrompt').style.display = 'block';
+        document.getElementById('apiKeyInput').focus();
+        return;
+      }
+      runAI();
+    }
+
+    async function runAI() {
+      if (!lastScanData) return;
+
+      const btn  = document.getElementById('aiBtn');
+      const box  = document.getElementById('aiBox');
+      const text = document.getElementById('aiText');
+
+      const S = STRINGS[currentLang];
+      btn.disabled = true;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg> ${S.aiAnalysing}`;
+      box.style.display = 'block';
+      text.innerHTML = '<span class="cursor"></span>';
+
+      const { url, hostname, score, verdict, flagTexts } = lastScanData;
+
+      const langInstruction = currentLang === 'ha'
+        ? 'Amsa da Hausa kawai (Hausa language only).'
+        : 'Reply in English.';
+
+      const prompt = `You are a cybersecurity expert explaining URL safety to a non-technical general user in Nigeria.
+
+A URL was scanned with these results:
+- URL: ${url}
+- Domain: ${hostname}
+- Threat score: ${score}/100
+- Verdict: ${verdict}
+- Signals detected: ${flagTexts.join('; ')}
+
+Write a SHORT, plain-English explanation (3–5 sentences max) of:
+1. What these signals mean in simple everyday terms
+2. What the person should do next
+
+Be direct, friendly, and clear. No jargon. No bullet points. Just natural sentences a non-technical person will understand. ${langInstruction}`;
+
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': sessionApiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 300,
+            stream: true,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error?.message || 'API error');
+        }
+
+        const reader  = res.body.getReader();
+        const decoder = new TextDecoder();
+        let output    = '';
+        text.innerHTML = '<span class="cursor"></span>';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+          for (const line of lines) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            try {
+              const json = JSON.parse(data);
+              if (json.type === 'content_block_delta' && json.delta?.text) {
+                output += json.delta.text;
+                text.innerHTML = output + '<span class="cursor"></span>';
+              }
+            } catch {}
+          }
+        }
+
+        text.innerHTML = output;
+        btn.innerHTML  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ${STRINGS[currentLang].aiReady}`;
+        btn.disabled   = false;
+
+      } catch (err) {
+        text.innerHTML = `<span style="color:var(--red)">Error: ${err.message}. Please check your API key and try again.</span>`;
+        btn.innerHTML  = `${STRINGS[currentLang].aiBtn}`;
+        btn.disabled   = false;
+      }
+    }
+
+    // ── Tab Switching ─────────────────────────────────────────────
+    const TAB_IDS   = { url: 'tabURL', file: 'tabFile' };
+    const PANEL_IDS = { url: 'panelURL', file: 'panelFile' };
+
+    function switchTab(tab) {
+      ['url','file'].forEach(t => {
+        const tabEl   = document.getElementById(TAB_IDS[t]);
+        const panelEl = document.getElementById(PANEL_IDS[t]);
+        if (tabEl)   tabEl.classList.toggle('active', t === tab);
+        if (panelEl) panelEl.classList.toggle('active', t === tab);
+      });
+    }
+
+    // ── File hashing (Web Crypto API — runs entirely in browser) ──
+    function handleDragOver(e) {
+      e.preventDefault();
+      document.getElementById('dropZone')?.classList.add('dragover');
+    }
+    function handleDragLeave(e) {
+      document.getElementById('dropZone')?.classList.remove('dragover');
+    }
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('dropZone')?.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) processFile(file);
+    }
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) processFile(file);
+    }
+
+    let currentFileData = null; // stores { file, sha256, isTextReadable, textContent }
+
+    // File type classification
+    function classifyExt(ext) {
+      const danger  = ['.exe','.bat','.cmd','.scr','.pif','.vbs','.jar','.msi','.dll','.ps1','.reg','.hta','.com','.cpl'];
+      const warn    = ['.js','.ts','.py','.sh','.rb','.php','.pl','.apk','.dmg','.iso'];
+      const doc     = ['.pdf','.doc','.docx','.xls','.xlsx','.ppt','.pptx','.odt','.rtf'];
+      const image   = ['.jpg','.jpeg','.png','.gif','.bmp','.svg','.webp','.ico','.tiff'];
+      const archive = ['.zip','.rar','.7z','.tar','.gz','.bz2','.xz'];
+      const code    = ['.c','.cpp','.cs','.java','.go','.rs','.kt','.swift','.html','.css','.json','.xml'];
+      if (danger.includes(ext))  return { cls: 'danger',  label: ext.replace('.','').toUpperCase().slice(0,4) };
+      if (warn.includes(ext))    return { cls: 'warn',    label: ext.replace('.','').toUpperCase().slice(0,4) };
+      if (doc.includes(ext))     return { cls: 'safe',    label: ext.replace('.','').toUpperCase().slice(0,4) };
+      if (image.includes(ext))   return { cls: 'neutral', label: 'IMG' };
+      if (archive.includes(ext)) return { cls: 'warn',    label: 'ZIP' };
+      if (code.includes(ext))    return { cls: 'neutral', label: 'CODE' };
+      return { cls: 'neutral', label: ext.replace('.','').toUpperCase().slice(0,4) || 'FILE' };
+    }
+
+    async function processFile(file) {
+      // Reset UI
+      document.getElementById('fileInfo').style.display = 'none';
+      document.getElementById('hashProgressFill').style.width = '0%';
+      document.getElementById('hashProgressFile').textContent = file.name;
+      document.getElementById('hashProgressLabel').textContent = 'Reading file...';
+      document.getElementById('hashProgress').style.display = 'block';
+
+      // File metadata
+      const sizeStr = file.size < 1024 ? file.size + ' B'
+                    : file.size < 1048576 ? (file.size/1024).toFixed(1) + ' KB'
+                    : (file.size/1048576).toFixed(2) + ' MB';
+      const ext = '.' + (file.name.split('.').pop() || '').toLowerCase();
+      const { cls, label } = classifyExt(ext);
+
+      // Populate file info
+      const typeIcon = document.getElementById('fileTypeIcon');
+      typeIcon.className = 'file-type-icon ' + cls;
+      typeIcon.textContent = label;
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileMeta').textContent =
+        `${sizeStr}  ·  ${file.type || 'unknown type'}  ·  Modified ${new Date(file.lastModified).toLocaleDateString()}`;
+
+      // Suspicious extension warning
+      const suspExts = ['.exe','.bat','.cmd','.scr','.pif','.vbs','.jar','.msi','.dll','.ps1','.reg','.hta','.com','.cpl'];
+      const warningEl  = document.getElementById('fileWarning');
+      const warningTxt = document.getElementById('fileWarningText');
+      if (suspExts.includes(ext)) {
+        warningEl.style.display = 'flex';
+        warningTxt.innerHTML = `<strong>"${ext}"</strong> files can execute code on your system. Only open from trusted sources. Scan with your antivirus before running.`;
+      } else {
+        warningEl.style.display = 'none';
+      }
+
+      // Read file
+      let buffer;
+      try {
+        document.getElementById('hashProgressFill').style.width = '25%';
+        document.getElementById('hashProgressLabel').textContent = 'Computing hashes...';
+        buffer = await file.arrayBuffer();
+      } catch(e) {
+        document.getElementById('hashProgress').style.display = 'none';
+        document.getElementById('hashResults').innerHTML =
+          `<div style="color:var(--red);font-size:13px;padding:8px 0;">Error reading file: ${e.message}</div>`;
+        document.getElementById('fileInfo').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('hashProgressFill').style.width = '55%';
+
+      // Compute hashes in parallel
+      const [md5Hash, sha1Hash, sha256Hash] = await Promise.all([
+        computeMD5(buffer),
+        computeHash('SHA-1', buffer),
+        computeHash('SHA-256', buffer),
+      ]);
+
+      document.getElementById('hashProgressFill').style.width = '100%';
+      document.getElementById('hashProgressLabel').textContent = '✓ Hashes computed';
+
+      // Determine if file is text-readable for AI analysis
+      const textExts = ['.txt','.md','.csv','.json','.xml','.html','.htm','.js','.ts','.py','.sh','.bat','.ps1','.log','.yaml','.yml','.toml','.ini','.cfg','.conf','.env','.php','.rb','.go','.rs','.c','.cpp','.cs','.java','.kt','.swift'];
+      const isTextReadable = textExts.includes(ext) || (file.type && file.type.startsWith('text/'));
+
+      // Try reading text content for AI (max 50KB)
+      let textContent = null;
+      if (isTextReadable && file.size < 51200) {
+        try { textContent = await file.text(); } catch(e) {}
+      }
+
+      // Store for VT and AI functions
+      currentFileData = { file, sha256: sha256Hash, isTextReadable, textContent };
+
+      setTimeout(() => {
+        document.getElementById('hashProgress').style.display = 'none';
+        document.getElementById('fileInfo').style.display = 'block';
+        document.getElementById('hashResults').innerHTML = [
+          { algo: 'MD5',     value: md5Hash },
+          { algo: 'SHA-1',   value: sha1Hash },
+          { algo: 'SHA-256', value: sha256Hash },
+        ].map((h, i) => `
+          <div class="hash-row" style="animation-delay:${i * 0.08}s">
+            <span class="hash-algo">${h.algo}</span>
+            <span class="hash-value">${h.value}</span>
+            <button class="hash-copy" title="Copy ${h.algo}" onclick="copyHash(this, '${h.value}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </div>
+        `).join('');
+
+        // Show VT section always, AI section only for readable files
+        document.getElementById('vtSection').style.display = 'block';
+        document.getElementById('vtResult').style.display = 'none';
+        document.getElementById('vtBtn').disabled = false;
+        document.getElementById('vtBtn').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg> Check file reputation on VirusTotal`;
+
+        if (isTextReadable) {
+          document.getElementById('aiFileSection').style.display = 'block';
+          document.getElementById('aiFileBox').style.display = 'none';
+          document.getElementById('aiFileText').innerHTML = '';
+          document.getElementById('aiFileBtn').disabled = false;
+          document.getElementById('aiFileBtn').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg> Analyse file content with AI`;
+        } else {
+          document.getElementById('aiFileSection').style.display = 'none';
+        }
+      }, 400);
+    }
+
+    function resetFilePanel() {
+      document.getElementById('fileInfo').style.display = 'none';
+      document.getElementById('hashProgress').style.display = 'none';
+      document.getElementById('hashResults').innerHTML = '';
+      document.getElementById('vtSection').style.display = 'none';
+      document.getElementById('vtResult').style.display = 'none';
+      document.getElementById('aiFileSection').style.display = 'none';
+      document.getElementById('aiFileBox').style.display = 'none';
+      document.getElementById('fileApiKeyPrompt').style.display = 'none';
+      document.getElementById('fileInput').value = '';
+      document.getElementById('dropZone')?.classList.remove('dragover');
+      currentFileData = null;
+    }
+
+    async function computeHash(algo, buffer) {
+      const hashBuffer = await crypto.subtle.digest(algo, buffer);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
+    // MD5 — pure JS (Web Crypto doesn't support MD5)
+    function computeMD5(buffer) {
+      return new Promise(resolve => {
+        const bytes = new Uint8Array(buffer);
+        resolve(md5(bytes));
+      });
+    }
+
+    // Minimal MD5 implementation
+    function md5(input) {
+      function safeAdd(x, y) { const lsw=(x&0xFFFF)+(y&0xFFFF); return (((x>>16)+(y>>16)+(lsw>>16))<<16)|(lsw&0xFFFF); }
+      function bitRotateLeft(num, cnt) { return (num<<cnt)|(num>>>(32-cnt)); }
+      function md5cmn(q,a,b,x,s,t) { return safeAdd(bitRotateLeft(safeAdd(safeAdd(a,q),safeAdd(x,t)),s),b); }
+      function md5ff(a,b,c,d,x,s,t) { return md5cmn((b&c)|((~b)&d),a,b,x,s,t); }
+      function md5gg(a,b,c,d,x,s,t) { return md5cmn((b&d)|(c&(~d)),a,b,x,s,t); }
+      function md5hh(a,b,c,d,x,s,t) { return md5cmn(b^c^d,a,b,x,s,t); }
+      function md5ii(a,b,c,d,x,s,t) { return md5cmn(c^(b|(~d)),a,b,x,s,t); }
+      const b64 = Array.from(input);
+      b64.push(0x80);
+      while (b64.length % 64 !== 56) b64.push(0);
+      const bitLen = input.length * 8;
+      for (let i=0;i<8;i++) b64.push((bitLen / Math.pow(2, i*8)) & 0xFF);
+      let a=1732584193,b=-271733879,c=-1732584194,d=271733878;
+      for (let i=0;i<b64.length;i+=64) {
+        const M=[];
+        for(let j=0;j<16;j++) M[j]=b64[i+j*4]|(b64[i+j*4+1]<<8)|(b64[i+j*4+2]<<16)|(b64[i+j*4+3]<<24);
+        let [aa,bb,cc,dd]=[a,b,c,d];
+        a=md5ff(a,b,c,d,M[0],7,-680876936);d=md5ff(d,a,b,c,M[1],12,-389564586);c=md5ff(c,d,a,b,M[2],17,606105819);b=md5ff(b,c,d,a,M[3],22,-1044525330);
+        a=md5ff(a,b,c,d,M[4],7,-176418897);d=md5ff(d,a,b,c,M[5],12,1200080426);c=md5ff(c,d,a,b,M[6],17,-1473231341);b=md5ff(b,c,d,a,M[7],22,-45705983);
+        a=md5ff(a,b,c,d,M[8],7,1770035416);d=md5ff(d,a,b,c,M[9],12,-1958414417);c=md5ff(c,d,a,b,M[10],17,-42063);b=md5ff(b,c,d,a,M[11],22,-1990404162);
+        a=md5ff(a,b,c,d,M[12],7,1804603682);d=md5ff(d,a,b,c,M[13],12,-40341101);c=md5ff(c,d,a,b,M[14],17,-1502002290);b=md5ff(b,c,d,a,M[15],22,1236535329);
+        a=md5gg(a,b,c,d,M[1],5,-165796510);d=md5gg(d,a,b,c,M[6],9,-1069501632);c=md5gg(c,d,a,b,M[11],14,643717713);b=md5gg(b,c,d,a,M[0],20,-373897302);
+        a=md5gg(a,b,c,d,M[5],5,-701558691);d=md5gg(d,a,b,c,M[10],9,38016083);c=md5gg(c,d,a,b,M[15],14,-660478335);b=md5gg(b,c,d,a,M[4],20,-405537848);
+        a=md5gg(a,b,c,d,M[9],5,568446438);d=md5gg(d,a,b,c,M[14],9,-1019803690);c=md5gg(c,d,a,b,M[3],14,-187363961);b=md5gg(b,c,d,a,M[8],20,1163531501);
+        a=md5gg(a,b,c,d,M[13],5,-1444681467);d=md5gg(d,a,b,c,M[2],9,-51403784);c=md5gg(c,d,a,b,M[7],14,1735328473);b=md5gg(b,c,d,a,M[12],20,-1926607734);
+        a=md5hh(a,b,c,d,M[5],4,-378558);d=md5hh(d,a,b,c,M[8],11,-2022574463);c=md5hh(c,d,a,b,M[11],16,1839030562);b=md5hh(b,c,d,a,M[14],23,-35309556);
+        a=md5hh(a,b,c,d,M[1],4,-1530992060);d=md5hh(d,a,b,c,M[4],11,1272893353);c=md5hh(c,d,a,b,M[7],16,-155497632);b=md5hh(b,c,d,a,M[10],23,-1094730640);
+        a=md5hh(a,b,c,d,M[13],4,681279174);d=md5hh(d,a,b,c,M[0],11,-358537222);c=md5hh(c,d,a,b,M[3],16,-722521979);b=md5hh(b,c,d,a,M[6],23,76029189);
+        a=md5hh(a,b,c,d,M[9],4,-640364487);d=md5hh(d,a,b,c,M[12],11,-421815835);c=md5hh(c,d,a,b,M[15],16,530742520);b=md5hh(b,c,d,a,M[2],23,-995338651);
+        a=md5ii(a,b,c,d,M[0],6,-198630844);d=md5ii(d,a,b,c,M[7],10,1126891415);c=md5ii(c,d,a,b,M[14],15,-1416354905);b=md5ii(b,c,d,a,M[5],21,-57434055);
+        a=md5ii(a,b,c,d,M[12],6,1700485571);d=md5ii(d,a,b,c,M[3],10,-1894986606);c=md5ii(c,d,a,b,M[10],15,-1051523);b=md5ii(b,c,d,a,M[1],21,-2054922799);
+        a=md5ii(a,b,c,d,M[8],6,1873313359);d=md5ii(d,a,b,c,M[15],10,-30611744);c=md5ii(c,d,a,b,M[6],15,-1560198380);b=md5ii(b,c,d,a,M[13],21,1309151649);
+        a=md5ii(a,b,c,d,M[4],6,-145523070);d=md5ii(d,a,b,c,M[11],10,-1120210379);c=md5ii(c,d,a,b,M[2],15,718787259);b=md5ii(b,c,d,a,M[9],21,-343485551);
+        a=safeAdd(a,aa);b=safeAdd(b,bb);c=safeAdd(c,cc);d=safeAdd(d,dd);
+      }
+      return [a,b,c,d].map(n => {
+        const hex = (n<0?n+4294967296:n).toString(16).padStart(8,'0');
+        return hex.match(/../g).reverse().join('');
+      }).join('');
+    }
+
+    function copyHash(btn, value) {
+      navigator.clipboard.writeText(value).then(() => {
+        btn.classList.add('copied');
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+        }, 2000);
+      });
+    }
+
+  </script>
+</body>
+</html>

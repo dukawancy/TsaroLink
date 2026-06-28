@@ -1,0 +1,8 @@
+{
+  "name": "phishing-url-detector",
+  "version": "1.0.0",
+  "description": "Bilingual (English/Hausa) phishing URL detector with AI explanations and real threat database integration (Google Safe Browsing + VirusTotal)",
+  "scripts": {
+    "dev": "netlify dev"
+  }
+}
