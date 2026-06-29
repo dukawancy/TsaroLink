@@ -12,6 +12,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- Theme init — must run before paint to prevent flash -->
+  <script>
+    (function() {
+      const saved = localStorage.getItem('tsaro-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -41,6 +49,8 @@
     }
 
     /* ── Light mode overrides ──────────────────────────────────── */
+    html { transition: background-color 0.25s ease, color 0.25s ease; }
+
     [data-theme="light"] {
       --bg:           #F0F4FF;
       --surface:      #FFFFFF;
@@ -72,6 +82,18 @@
       background: rgba(0,0,0,0.04);
       border-color: rgba(0,0,0,0.16);
     }
+    [data-theme="light"] .scan-bar { background: #FFFFFF; }
+    [data-theme="light"] .url-input { color: var(--text-primary); }
+    [data-theme="light"] .check-btn { color: #FFFFFF; }
+    [data-theme="light"] .hash-row { background: #F0F4FF; }
+    [data-theme="light"] .drop-zone { background: #F4F7FF; }
+    [data-theme="light"] .api-key-input { background: #F0F4FF; color: var(--text-primary); }
+    [data-theme="light"] .hash-input { background: #F0F4FF; color: var(--text-primary); }
+    [data-theme="light"] .card,
+    [data-theme="light"] .history-card,
+    [data-theme="light"] .how-card { box-shadow: 0 4px 24px rgba(0,100,180,0.08); }
+    [data-theme="light"] .theme-toggle { box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    [data-theme="light"] .logo-mark { filter: drop-shadow(0 0 12px rgba(0,153,204,0.25)); }
 
     /* ── Theme toggle button ───────────────────────────────────── */
     .theme-toggle {
@@ -107,6 +129,14 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
     }
+
+    *, *::before, *::after { transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease; }
+    /* Override transition for animations that shouldn't be affected */
+    .score-fill, .hash-progress-fill, .radar-ring, .flag, .history-item,
+    .radar-core, .verdict-icon, .check-btn, .mode-tab, .lang-btn,
+    .lang-toggle::before { transition: none !important; }
+    .score-fill { transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important; }
+    .hash-progress-fill { transition: width 0.4s ease !important; }
 
     body {
       font-family: var(--sans);
@@ -712,33 +742,7 @@
     .check-btn svg { width: 15px; height: 15px; }
 
     /* ── Example pills ───────────────────────────────────────── */
-    .examples-label {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-    .pills { display: flex; flex-wrap: wrap; gap: 6px; }
-    .pill {
-      font-size: 12px;
-      padding: 5px 12px;
-      border-radius: 99px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: var(--sans);
-      font-weight: 500;
-    }
-    .pill:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-dim);
-      transform: translateY(-1px);
-    }
+
 
     /* ── Divider ─────────────────────────────────────────────── */
     .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
@@ -1299,15 +1303,6 @@
         </button>
       </div>
 
-      <p class="examples-label" data-i18n="examplesLabel">Try an example</p>
-      <div class="pills">
-        <span class="pill" onclick="setExample('http://paypa1-secure-login.tk/account/verify?token=abc123')">🎣 <span data-i18n="ex1">Fake PayPal</span></span>
-        <span class="pill" onclick="setExample('http://amaz0n-account-update.xyz/confirm')">🎣 <span data-i18n="ex2">Fake Amazon</span></span>
-        <span class="pill" onclick="setExample('http://bit.ly/3xFakeLnk')">🔗 <span data-i18n="ex3">Shortened URL</span></span>
-        <span class="pill" onclick="setExample('https://www.google.com')">✅ <span data-i18n="ex4">Google</span></span>
-        <span class="pill" onclick="setExample('https://github.com/cyfrin')">✅ <span data-i18n="ex5">GitHub</span></span>
-      </div>
-
       <div class="divider"></div>
 
       <!-- Empty state -->
@@ -1543,13 +1538,7 @@
       localStorage.setItem('tsaro-theme', isLight ? 'dark' : 'light');
     }
 
-    // Apply saved theme on load
-    (function() {
-      const saved = localStorage.getItem('tsaro-theme');
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const theme = saved || (prefersDark ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', theme);
-    })();
+    // Theme initialised in <head> to prevent flash
 
     // ── i18n ─────────────────────────────────────────────────────
     let currentLang = 'en';
@@ -1560,8 +1549,6 @@
         h1a: 'Phishing URL', h1b: 'Detector',
         tagline: "Paste any suspicious link and we'll instantly scan it for phishing signals — no technical knowledge needed.",
         checkBtn: 'Check',
-        examplesLabel: 'Try an example',
-        ex1: 'Fake PayPal', ex2: 'Fake Amazon', ex3: 'Shortened URL', ex4: 'Google', ex5: 'GitHub',
         emptyMsg: 'No URL analysed yet — paste a link above to begin.',
         threatLevel: 'Threat level',
         whatWeCheck: 'What we check',
@@ -1621,10 +1608,8 @@
       ha: {
         badge: 'Kayan Aikin Tsaron Yanar Gizo',
         h1a: 'Gano', h1b: 'Phishing URL',
-        tagline: "Liƙa duk wani link ko fayil da kake zargi a nan kasa, za mu bincika nan take domin gano duk wani alamun zamba ko akasin haka",
+        tagline: "Liƙa duk wani link mai zargi a nan, za mu bincika nan take don alamu na zamba — ba kwarewar fasaha ake bukata ba.",
         checkBtn: 'Bincika',
-        examplesLabel: 'Gwada misali',
-        ex1: 'Karya PayPal', ex2: 'Karya Amazon', ex3: 'URL da aka takaitawa', ex4: 'Google', ex5: 'GitHub',
         emptyMsg: 'Ba a bincika wani URL ba tukuna — liƙa link a sama don fara.',
         threatLevel: 'Matakin haɗari',
         whatWeCheck: 'Abin da muke bincikawa',
@@ -1714,10 +1699,7 @@
       bulb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>`,
     };
 
-    function setExample(url) {
-      document.getElementById('urlInput').value = url;
-      analyzeURL();
-    }
+
 
     function analyzeURL() {
       const raw = document.getElementById('urlInput').value.trim();
@@ -1829,14 +1811,9 @@
       }
 
       // Render
-      // Show radar briefly then reveal result
       document.getElementById('emptyState').style.display = 'none';
       document.getElementById('result').style.display = 'none';
       document.getElementById('radarWrap').classList.add('active');
-      setTimeout(() => {
-        document.getElementById('radarWrap').classList.remove('active');
-        document.getElementById('result').style.display = 'block';
-      }, 900);
 
       // Reset AI section
       document.getElementById('aiBox').style.display = 'none';
@@ -1860,6 +1837,7 @@
       // Add to scan history
       addToHistory({ url, hostname, score, cls });
 
+      // Update all result DOM elements then reveal after radar
       document.getElementById('vIcon').className = `verdict-icon ${cls}`;
       document.getElementById('vIcon').innerHTML = ICONS[iconKey];
       document.getElementById('vLabel').className = `verdict-text-label ${cls}`;
@@ -1869,7 +1847,7 @@
       document.getElementById('scoreNum').textContent = score + ' / 100';
       const bar = document.getElementById('scoreBar');
       bar.style.background = barColor;
-      requestAnimationFrame(() => { bar.style.width = score + '%'; });
+      bar.style.width = '0%'; // reset first
 
       document.getElementById('flagsGrid').innerHTML = flags.map(f => `
         <div class="flag ${f.type}">
@@ -1879,6 +1857,13 @@
       `).join('');
 
       document.getElementById('tipBox').innerHTML = `${ICONS.bulb}<span>${tipText}</span>`;
+
+      setTimeout(() => {
+        document.getElementById('radarWrap').classList.remove('active');
+        document.getElementById('result').style.display = 'block';
+        // Animate score bar after reveal
+        requestAnimationFrame(() => { bar.style.width = score + '%'; });
+      }, 900);
     }
 
     document.getElementById('urlInput').addEventListener('keydown', e => {
