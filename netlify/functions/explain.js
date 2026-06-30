@@ -1,17 +1,17 @@
 // netlify/functions/explain.js
 //
 // Serverless function that generates a plain-English explanation of a
-// phishing scan result using Google's Gemini API (free tier).
+// phishing scan result using Groq's free API (Llama 3.3 70B).
 //
 // This means visitors get free AI explanations without ever needing
 // their own API key — your key lives only here, server-side.
 //
-// Free tier: 250 requests/day, 10 requests/minute (Gemini 2.0 Flash)
-// Get a key at: https://aistudio.google.com
+// Free tier: genuinely free, no billing card required.
+// Get a key at: https://console.groq.com -> API Keys
 //
 // Set in Netlify dashboard:
-//   Site configuration → Environment variables
-//     GEMINI_API_KEY = your_key
+//   Site configuration -> Environment variables
+//     GROQ_API_KEY = your_key
 
 exports.handler = async (event) => {
   const headers = {
@@ -33,14 +33,14 @@ exports.handler = async (event) => {
     };
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         available: false,
-        error: 'GEMINI_API_KEY not configured on the server.',
+        error: 'GROQ_API_KEY not configured on the server.',
       }),
     };
   }
@@ -66,29 +66,27 @@ exports.handler = async (event) => {
   }
 
   try {
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-    const res = await fetch(endpoint, {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 400,
-        },
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.4,
+        max_tokens: 400,
       }),
     });
 
     if (!res.ok) {
       const errBody = await res.text();
-      throw new Error(`Gemini API error: ${res.status} ${errBody}`);
+      throw new Error(`Groq API error: ${res.status} ${errBody}`);
     }
 
     const data = await res.json();
-    const text =
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      'No explanation could be generated.';
+    const text = data.choices?.[0]?.message?.content || 'No explanation could be generated.';
 
     return {
       statusCode: 200,
