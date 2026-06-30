@@ -1379,13 +1379,6 @@
           </div>
           <div class="ai-text" id="aiText"></div>
         </div>
-        <div id="apiKeyPrompt" style="display:none; margin-top:10px;">
-          <div class="api-key-row">
-            <input class="api-key-input" type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off" />
-            <button class="api-save-btn" onclick="saveKey()">Save key</button>
-          </div>
-          <p class="api-note">Your Anthropic API key is stored only in your browser's session memory — never sent anywhere except the Anthropic API directly. Get a free key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);">console.anthropic.com</a></p>
-        </div>
       </div>
 
       <!-- Share to X -->
@@ -1482,14 +1475,6 @@
               AI File Analysis
             </div>
             <div class="ai-text" id="aiFileText"></div>
-          </div>
-          <!-- API key prompt for file AI -->
-          <div id="fileApiKeyPrompt" style="display:none; margin-top:10px;">
-            <div class="api-key-row">
-              <input class="api-key-input" type="password" id="fileApiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off" />
-              <button class="api-save-btn" onclick="saveFileKey()">Save key</button>
-            </div>
-            <p class="api-note">Your Anthropic API key is stored in session memory only. Get one free at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);">console.anthropic.com</a></p>
           </div>
         </div>
 
@@ -1818,7 +1803,6 @@
       // Reset AI section
       document.getElementById('aiBox').style.display = 'none';
       document.getElementById('aiText').innerHTML = '';
-      document.getElementById('apiKeyPrompt').style.display = 'none';
       const aiBtn = document.getElementById('aiBtn');
       aiBtn.disabled = false;
       aiBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg> ${STRINGS[currentLang].aiBtn}`;
@@ -1922,22 +1906,9 @@
       }
     }
 
-    // ── AI File Content Analysis ──────────────────────────────────
-    function saveFileKey() {
-      const val = document.getElementById('fileApiKeyInput').value.trim();
-      if (!val.startsWith('sk-ant-')) { alert('Invalid key format. Must start with sk-ant-'); return; }
-      sessionApiKey = val;
-      document.getElementById('fileApiKeyPrompt').style.display = 'none';
-      runFileAI();
-    }
-
+    // ── AI File Content Analysis (via backend — no user key needed) ─
     function analyzeFileWithAI() {
       if (!currentFileData) return;
-      if (!sessionApiKey) {
-        document.getElementById('fileApiKeyPrompt').style.display = 'block';
-        document.getElementById('fileApiKeyInput').focus();
-        return;
-      }
       runFileAI();
     }
 
@@ -1978,49 +1949,24 @@ Analyse this file for:
 Give a SHORT plain-English verdict in 4–6 sentences. State clearly if it looks safe or suspicious and why. No bullet points — natural sentences only.`;
 
       try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
+        const res = await fetch('/.netlify/functions/explain', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': sessionApiKey,
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true'
-          },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-6',
-            max_tokens: 400,
-            stream: true,
-            messages: [{ role: 'user', content: prompt }]
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
         });
-        if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'API error'); }
 
-        const reader  = res.body.getReader();
-        const decoder = new TextDecoder();
-        let output = '';
-        text.innerHTML = '<span class="cursor"></span>';
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        const data = await res.json();
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const lines = decoder.decode(value).split('\n').filter(l => l.startsWith('data: '));
-          for (const line of lines) {
-            const d = line.slice(6);
-            if (d === '[DONE]') continue;
-            try {
-              const json = JSON.parse(d);
-              if (json.type === 'content_block_delta' && json.delta?.text) {
-                output += json.delta.text;
-                text.innerHTML = output + '<span class="cursor"></span>';
-              }
-            } catch {}
-          }
+        if (!data.available) {
+          throw new Error(data.error || 'AI explanation unavailable right now.');
         }
-        text.innerHTML = output;
+
+        text.innerHTML = data.text;
         btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> AI analysis complete`;
         btn.disabled = false;
       } catch(err) {
-        text.innerHTML = `<span style="color:var(--red)">Error: ${err.message}. Check your API key and try again.</span>`;
+        text.innerHTML = `<span style="color:var(--red)">${err.message}</span>`;
         btn.innerHTML = `Analyse file content with AI`;
         btn.disabled = false;
       }
@@ -2168,25 +2114,11 @@ Give a SHORT plain-English verdict in 4–6 sentences. State clearly if it looks
       window.open(tweetUrl, '_blank', 'noopener,noreferrer');
     }
 
-    // ── AI Explanation ──────────────────────────────────────────
-    let sessionApiKey = '';
-    let lastScanData  = null;
-
-    function saveKey() {
-      const val = document.getElementById('apiKeyInput').value.trim();
-      if (!val.startsWith('sk-ant-')) { alert('Invalid key format. Must start with sk-ant-'); return; }
-      sessionApiKey = val;
-      document.getElementById('apiKeyPrompt').style.display = 'none';
-      runAI();
-    }
+    // ── AI Explanation (via backend — no user key needed) ─────────
+    let lastScanData = null;
 
     function triggerAI() {
       if (!lastScanData) return;
-      if (!sessionApiKey) {
-        document.getElementById('apiKeyPrompt').style.display = 'block';
-        document.getElementById('apiKeyInput').focus();
-        return;
-      }
       runAI();
     }
 
@@ -2225,56 +2157,25 @@ Write a SHORT, plain-English explanation (3–5 sentences max) of:
 Be direct, friendly, and clear. No jargon. No bullet points. Just natural sentences a non-technical person will understand. ${langInstruction}`;
 
       try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
+        const res = await fetch('/.netlify/functions/explain', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': sessionApiKey,
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true'
-          },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-6',
-            max_tokens: 300,
-            stream: true,
-            messages: [{ role: 'user', content: prompt }]
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
         });
 
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error?.message || 'API error');
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        const data = await res.json();
+
+        if (!data.available) {
+          throw new Error(data.error || 'AI explanation unavailable right now.');
         }
 
-        const reader  = res.body.getReader();
-        const decoder = new TextDecoder();
-        let output    = '';
-        text.innerHTML = '<span class="cursor"></span>';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
-          for (const line of lines) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            try {
-              const json = JSON.parse(data);
-              if (json.type === 'content_block_delta' && json.delta?.text) {
-                output += json.delta.text;
-                text.innerHTML = output + '<span class="cursor"></span>';
-              }
-            } catch {}
-          }
-        }
-
-        text.innerHTML = output;
+        text.innerHTML = data.text;
         btn.innerHTML  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ${STRINGS[currentLang].aiReady}`;
         btn.disabled   = false;
 
       } catch (err) {
-        text.innerHTML = `<span style="color:var(--red)">Error: ${err.message}. Please check your API key and try again.</span>`;
+        text.innerHTML = `<span style="color:var(--red)">${err.message}</span>`;
         btn.innerHTML  = `${STRINGS[currentLang].aiBtn}`;
         btn.disabled   = false;
       }
@@ -2450,7 +2351,6 @@ Be direct, friendly, and clear. No jargon. No bullet points. Just natural senten
       document.getElementById('vtResult').style.display = 'none';
       document.getElementById('aiFileSection').style.display = 'none';
       document.getElementById('aiFileBox').style.display = 'none';
-      document.getElementById('fileApiKeyPrompt').style.display = 'none';
       document.getElementById('fileInput').value = '';
       document.getElementById('dropZone')?.classList.remove('dragover');
       currentFileData = null;
