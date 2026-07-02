@@ -15,13 +15,7 @@
   <!-- Theme init — must run before paint to prevent flash -->
   <script>
     (function() {
-      let saved = null;
-      try {
-        saved = localStorage.getItem('tsaro-theme');
-      } catch (e) {
-        const match = document.cookie.match(/tsaro-theme=([^;]+)/);
-        if (match) saved = match[1];
-      }
+      const saved = localStorage.getItem('tsaro-theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
     })();
@@ -1206,432 +1200,6 @@
 
     /* ── Keyframes shared ────────────────────────────────────── */
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ══════════════════════════════════════════════════════════
-       RESPONSIVE DESIGN
-    ══════════════════════════════════════════════════════════ */
-
-    /* ── Tablet & small laptops (≤768px) ───────────────────── */
-    @media (max-width: 768px) {
-      body {
-        padding: 2rem 0.75rem 4rem;
-        position: relative; /* ensure absolute positioning context */
-      }
-      .theme-toggle {
-        position: absolute;
-        top: 1.25rem;
-        right: 1.25rem;
-      }
-      .header {
-        margin-bottom: 2rem;
-      }
-      .card {
-        padding: 1.5rem;
-        border-radius: 16px;
-      }
-      .history-card,
-      .how-card {
-        padding: 1.25rem 1.5rem;
-        border-radius: 16px;
-      }
-      .logo-mark {
-        width: 60px;
-        height: 60px;
-        margin-bottom: 1rem;
-      }
-      .logo-wordmark {
-        font-size: 28px;
-      }
-      .verdict-row {
-        gap: 12px;
-      }
-      .verdict-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-      }
-      .verdict-icon svg { width: 22px; height: 22px; }
-      .verdict-text-label {
-        font-size: 16px;
-      }
-    }
-
-    /* ── Mobile landscape & large phones (≤640px) ──────────── */
-    @media (max-width: 640px) {
-      body {
-        padding: 1.5rem 0.625rem 3.5rem;
-      }
-      .header {
-        margin-bottom: 1.5rem;
-      }
-      h1 {
-        font-size: clamp(1.5rem, 7vw, 2rem);
-        margin-bottom: 0.65rem;
-      }
-      .tagline {
-        font-size: 13.5px;
-        line-height: 1.55;
-      }
-      .card {
-        padding: 1.25rem;
-        border-radius: 14px;
-        margin-bottom: 0.75rem;
-      }
-      .history-card,
-      .how-card {
-        padding: 1rem 1.25rem;
-        border-radius: 14px;
-      }
-      .scan-bar {
-        border-radius: 10px;
-        margin-bottom: 1rem;
-      }
-      .scan-prefix {
-        padding: 0 8px;
-        font-size: 11px;
-      }
-      .url-input {
-        font-size: 12px;
-        padding: 12px 0;
-      }
-      .check-btn {
-        padding: 0 14px;
-        font-size: 12px;
-      }
-      .check-btn svg { width: 13px; height: 13px; }
-      .mode-tabs {
-        margin-bottom: 1rem;
-      }
-      .mode-tab {
-        font-size: 12px;
-        height: 36px;
-        gap: 5px;
-      }
-      .mode-tab svg { width: 13px; height: 13px; }
-      .score-meta {
-        font-size: 11px;
-      }
-      .flag {
-        font-size: 12px;
-        padding: 9px 11px;
-        gap: 7px;
-      }
-      .flag svg { width: 13px; height: 13px; }
-      .tip {
-        font-size: 12px;
-        padding: 11px 13px;
-        gap: 8px;
-      }
-      .tip svg { width: 14px; height: 14px; }
-      .deep-scan-btn,
-      .ai-btn,
-      .share-btn {
-        height: 40px;
-        font-size: 12px;
-        gap: 6px;
-      }
-      .deep-scan-btn svg,
-      .ai-btn svg,
-      .share-btn svg { width: 13px; height: 13px; }
-      .signals {
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-      }
-      .signal {
-        font-size: 12px;
-        gap: 7px;
-      }
-      /* File panel */
-      .drop-zone {
-        padding: 2rem 1rem 2rem;
-      }
-      .drop-icon-wrap {
-        width: 50px;
-        height: 50px;
-        border-radius: 14px;
-        margin-bottom: 0.85rem;
-      }
-      .drop-icon-wrap svg { width: 22px; height: 22px; }
-      .drop-title { font-size: 14px; }
-      .drop-sub { font-size: 11px; }
-      .drop-badges { gap: 4px; margin-top: 10px; }
-      .drop-badge { font-size: 9px; padding: 2px 7px; }
-      .file-info {
-        padding: 1rem;
-      }
-      .file-info-top {
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      .file-type-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 9px;
-        font-size: 9px;
-      }
-      .file-name { font-size: 12px; }
-      .file-meta { font-size: 11px; }
-      .file-rescan { font-size: 11px; height: 30px; padding: 0 10px; }
-      .hash-row {
-        gap: 8px;
-        padding: 8px 10px;
-      }
-      .hash-algo { font-size: 9px; min-width: 48px; }
-      .hash-value { font-size: 10px; }
-      .hash-copy { width: 26px; height: 26px; }
-      .hash-copy svg { width: 12px; height: 12px; }
-      .file-action-btn {
-        height: 38px;
-        font-size: 12px;
-      }
-      /* History */
-      .history-item {
-        padding: 8px 10px;
-        gap: 8px;
-      }
-      .history-host { font-size: 12px; }
-      .history-meta { font-size: 10px; }
-      .history-score { font-size: 11px; }
-      /* Footer */
-      footer { font-size: 11px; line-height: 1.7; }
-      /* Theme toggle */
-      .theme-toggle {
-        width: 36px;
-        height: 36px;
-        top: 1rem;
-        right: 1rem;
-      }
-      .theme-toggle svg { width: 16px; height: 16px; }
-    }
-
-    /* ── Small phones (≤480px) ─────────────────────────────── */
-    @media (max-width: 480px) {
-      body {
-        padding: 1rem 0.5rem 3rem;
-      }
-      .header {
-        margin-bottom: 1.25rem;
-      }
-      h1 {
-        font-size: clamp(1.3rem, 8vw, 1.75rem);
-      }
-      .tagline {
-        font-size: 13px;
-      }
-      .logo-mark {
-        width: 52px;
-        height: 52px;
-        margin-bottom: 0.75rem;
-      }
-      .logo-wordmark {
-        font-size: 24px;
-        margin-bottom: 4px;
-      }
-      .logo-badge {
-        padding: 4px 10px;
-        font-size: 9px;
-        gap: 5px;
-        margin-bottom: 1rem;
-      }
-      .logo-badge svg { width: 10px; height: 10px; }
-      .lang-toggle {
-        margin-bottom: 1rem;
-      }
-      .lang-btn {
-        padding: 5px 12px;
-        font-size: 11px;
-      }
-      .card {
-        padding: 1rem;
-        border-radius: 12px;
-      }
-      .history-card,
-      .how-card {
-        padding: 0.85rem 1rem;
-        border-radius: 12px;
-      }
-      /* Scan bar stacks on very narrow screens */
-      .scan-bar {
-        flex-wrap: wrap;
-        border-radius: 10px;
-      }
-      .scan-prefix {
-        display: none;
-      }
-      .url-input {
-        width: 100%;
-        min-width: 0;
-        padding: 12px 12px;
-        font-size: 12px;
-      }
-      .check-btn {
-        width: 100%;
-        justify-content: center;
-        padding: 11px 0;
-        font-size: 12.5px;
-        border-radius: 0 0 9px 9px;
-      }
-      /* Mode tabs */
-      .mode-tab {
-        font-size: 11.5px;
-        height: 34px;
-      }
-      /* Verdict */
-      .verdict-row {
-        gap: 10px;
-        margin-bottom: 1.25rem;
-      }
-      .verdict-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 11px;
-      }
-      .verdict-icon svg { width: 20px; height: 20px; }
-      .verdict-text-label {
-        font-size: 15px;
-      }
-      .verdict-url { font-size: 11px; }
-      /* Flags */
-      .flags-grid {
-        grid-template-columns: 1fr;
-        gap: 6px;
-        margin-bottom: 1rem;
-      }
-      .flag {
-        font-size: 11.5px;
-        padding: 8px 10px;
-      }
-      /* Deep scan result rows */
-      .ds-row {
-        gap: 8px;
-        padding: 8px 0;
-        font-size: 12px;
-      }
-      .ds-icon { width: 26px; height: 26px; border-radius: 7px; }
-      .ds-icon svg { width: 12px; height: 12px; }
-      .ds-source { font-size: 12px; }
-      .ds-detail { font-size: 11.5px; }
-      /* AI section */
-      .ai-text { font-size: 12.5px; line-height: 1.7; }
-      .api-key-row {
-        flex-direction: column;
-        gap: 6px;
-      }
-      .api-key-input { height: 36px; font-size: 11px; }
-      .api-save-btn { height: 36px; font-size: 11px; width: 100%; text-align: center; justify-content: center; display: flex; align-items: center; }
-      /* Signals (how it works) */
-      .signals {
-        grid-template-columns: 1fr;
-        gap: 4px;
-      }
-      .signal {
-        font-size: 12px;
-        padding: 5px 0;
-      }
-      /* File info adjustments */
-      .file-info-top {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-      }
-      .file-rescan {
-        width: 100%;
-        justify-content: center;
-        display: flex;
-        align-items: center;
-      }
-      .file-name { font-size: 11.5px; }
-      .hash-row {
-        flex-wrap: wrap;
-        gap: 4px;
-        padding: 8px;
-      }
-      .hash-algo { min-width: auto; font-size: 9px; }
-      .hash-value {
-        font-size: 9.5px;
-        width: 100%;
-        order: 3;
-        padding-left: 0;
-      }
-      .hash-copy { order: 2; margin-left: auto; }
-      /* Drop zone */
-      .drop-zone {
-        padding: 1.5rem 0.75rem 1.5rem;
-      }
-      .drop-icon-wrap {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        margin-bottom: 0.7rem;
-      }
-      .drop-icon-wrap svg { width: 20px; height: 20px; }
-      .drop-title { font-size: 13px; }
-      .drop-sub { font-size: 10.5px; }
-      /* History card */
-      .history-header h2 { font-size: 10px; }
-      .history-clear { font-size: 11px; }
-      .history-clear svg { width: 12px; height: 12px; }
-      /* Footer */
-      footer {
-        font-size: 10.5px;
-        margin-top: 1.5rem;
-        padding: 0 0.5rem;
-      }
-      /* Theme toggle */
-      .theme-toggle {
-        width: 34px;
-        height: 34px;
-        top: 0.75rem;
-        right: 0.75rem;
-      }
-      .theme-toggle svg { width: 15px; height: 15px; }
-    }
-
-    /* ── Extra small phones (≤360px) ──────────────────────── */
-    @media (max-width: 360px) {
-      body {
-        padding: 0.75rem 0.375rem 2.5rem;
-      }
-      h1 {
-        font-size: 1.2rem;
-      }
-      .tagline { font-size: 12px; }
-      .logo-mark { width: 44px; height: 44px; }
-      .logo-wordmark { font-size: 22px; }
-      .card { padding: 0.75rem; }
-      .url-input { font-size: 11px; padding: 10px 10px; }
-      .check-btn { font-size: 11.5px; padding: 10px 0; }
-      .mode-tab { font-size: 11px; height: 32px; }
-      .verdict-icon { width: 40px; height: 40px; }
-      .verdict-icon svg { width: 18px; height: 18px; }
-      .verdict-text-label { font-size: 14px; }
-      .flag { font-size: 11px; padding: 7px 8px; }
-      .hash-value { font-size: 8.5px; }
-      .drop-title { font-size: 12px; }
-    }
-
-    /* ── Ensure touch targets are adequate on touch devices ── */
-    @media (hover: none) and (pointer: coarse) {
-      .check-btn,
-      .mode-tab,
-      .deep-scan-btn,
-      .ai-btn,
-      .share-btn,
-      .file-action-btn,
-      .history-item,
-      .hash-check-btn,
-      .lang-btn {
-        min-height: 44px;
-      }
-      .hash-copy {
-        min-width: 36px;
-        min-height: 36px;
-      }
-      .theme-toggle {
-        min-width: 40px;
-        min-height: 40px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -1951,13 +1519,8 @@
     function toggleTheme() {
       const html = document.documentElement;
       const isLight = html.getAttribute('data-theme') === 'light';
-      const newTheme = isLight ? 'dark' : 'light';
-      html.setAttribute('data-theme', newTheme);
-      try {
-        localStorage.setItem('tsaro-theme', newTheme);
-      } catch (e) {
-        document.cookie = `tsaro-theme=${newTheme};path=/;max-age=31536000`;
-      }
+      html.setAttribute('data-theme', isLight ? 'dark' : 'light');
+      localStorage.setItem('tsaro-theme', isLight ? 'dark' : 'light');
     }
 
     // Theme initialised in <head> to prevent flash
@@ -1993,11 +1556,10 @@
         historyAgo: (m) => m < 1 ? 'just now' : m === 1 ? '1 min ago' : `${m} min ago`,
         deepScanBtn: 'Run deep scan (live threat databases)',
         deepScanTitle: 'Live Threat Database Results',
-        deepScanLoading: 'Checking Google Safe Browsing and VirusTotal...',
-        dsSafeBrowsingName: 'Google Safe Browsing',
+        deepScanLoading: 'Checking URLScan.io, URLhaus and VirusTotal...',
         dsVirusTotalName: 'VirusTotal',
         dsFlaggedKnown: 'Flagged as a known threat',
-        dsNotFlagged: 'Not found in known threat database',
+        dsNotFlagged: 'Not found in threat database',
         dsUnavailable: 'Check unavailable — backend not configured',
         dsPending: 'First-time scan submitted — full results in ~60 seconds. Try again shortly.',
         dsEnginesFlagged: (m, t) => `${m} of ${t} security engines flagged this URL`,
@@ -2054,11 +1616,10 @@
         historyAgo: (m) => m < 1 ? 'yanzu' : m === 1 ? 'minti 1 da ya wuce' : `minti ${m} da ya wuce`,
         deepScanBtn: 'Gudanar da bincike mai zurfi (bayanan tsaro na zahiri)',
         deepScanTitle: 'Sakamakon Bayanan Tsaro na Zahiri',
-        deepScanLoading: 'Ana bincika Google Safe Browsing da VirusTotal...',
-        dsSafeBrowsingName: 'Google Safe Browsing',
+        deepScanLoading: 'Ana bincika URLScan.io, URLhaus da VirusTotal...',
         dsVirusTotalName: 'VirusTotal',
         dsFlaggedKnown: 'An yi alama a matsayin sanannen haɗari',
-        dsNotFlagged: 'Ba a samu a cikin sanannun bayanan haɗari ba',
+        dsNotFlagged: 'Ba a samu a cikin bayanan haɗari ba',
         dsUnavailable: 'Bincike ba ya samuwa — ba a saita uwar garken ba',
         dsPending: 'An gabatar da bincike na farko — cikakken sakamako a cikin daƙiƙa 60. Sake gwadawa kaɗan bayan haka.',
         dsEnginesFlagged: (m, t) => `Injinan tsaro ${m} daga cikin ${t} sun yi alama da wannan URL`,
@@ -2439,14 +2000,26 @@ Give a SHORT plain-English verdict in 4–6 sentences. State clearly if it looks
 
         let rows = '';
 
-        // Safe Browsing row
-        const sb = data.safeBrowsing;
-        if (!sb || !sb.available) {
-          rows += dsRow('muted', icon('minus'), S.dsSafeBrowsingName, S.dsUnavailable);
-        } else if (sb.flagged) {
-          rows += dsRow('bad', icon('x'), S.dsSafeBrowsingName, `${S.dsFlaggedKnown} (${(sb.threatTypes || []).join(', ')})`);
+        // URLScan row
+        const us = data.urlscan;
+        if (!us || !us.available) {
+          rows += dsRow('muted', icon('minus'), 'URLScan.io', S.dsUnavailable);
+        } else if (!us.found) {
+          rows += dsRow('neutral', icon('minus'), 'URLScan.io', 'No prior scans found — URL has not been analysed before');
+        } else if (us.flagged) {
+          rows += dsRow('bad', icon('x'), 'URLScan.io', `${S.dsFlaggedKnown}${us.tags?.length ? ' — tags: ' + us.tags.join(', ') : ''} (score: ${us.score}/100)`);
         } else {
-          rows += dsRow('good', icon('check'), S.dsSafeBrowsingName, S.dsNotFlagged);
+          rows += dsRow('good', icon('check'), 'URLScan.io', `No malicious verdict — scan score: ${us.score}/100`);
+        }
+
+        // URLhaus row
+        const uh = data.urlhaus;
+        if (!uh || !uh.available) {
+          rows += dsRow('muted', icon('minus'), 'URLhaus', S.dsUnavailable);
+        } else if (uh.flagged) {
+          rows += dsRow('bad', icon('x'), 'URLhaus', `Malware URL active — threat: ${uh.threat || 'unknown'}${uh.tags?.length ? ' [' + uh.tags.join(', ') + ']' : ''}`);
+        } else {
+          rows += dsRow('good', icon('check'), 'URLhaus', S.dsNotFlagged);
         }
 
         // VirusTotal row

@@ -1,4 +1,4 @@
-#  Phishing URL Detector
+# 🛡️ Phishing URL Detector
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/YOUR-NETLIFY-BADGE-ID/deploy-status)](https://app.netlify.com/sites/YOUR-SITE-NAME/deploys)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -10,29 +10,29 @@
 
 ---
 
-## Features
+## ✨ Features
 
-- **6-signal pattern analysis** — HTTPS check, suspicious TLDs, brand impersonation, URL shorteners, high-risk keywords, subdomain depth
--  **Live threat database scan** — checks against Google Safe Browsing (10k/day free) and VirusTotal (70+ security engines)
--  **AI explanation** — Claude (Anthropic) explains results in plain English anyone can understand
--  **Bilingual UI** — full English/Hausa toggle including AI responses, verdicts, flags, and tips
--  **Share to X** — one-click pre-filled tweet with verdict and score in the active language
--  **Scan history** — last 10 URLs checked this session, click to re-run any
--  **Privacy-first** — no data stored or sent to any server except the threat APIs; all pattern checks run in the browser
--  **No install needed** — single HTML file, works in any modern browser
+- 🔍 **6-signal pattern analysis** — HTTPS check, suspicious TLDs, brand impersonation, URL shorteners, high-risk keywords, subdomain depth
+- 🌐 **Live threat database scan** — checks against Google Safe Browsing (10k/day free) and VirusTotal (70+ security engines)
+- 🤖 **AI explanation** — Claude (Anthropic) explains results in plain English anyone can understand
+- 🌍 **Bilingual UI** — full English/Hausa toggle including AI responses, verdicts, flags, and tips
+- 📤 **Share to X** — one-click pre-filled tweet with verdict and score in the active language
+- 🕒 **Scan history** — last 10 URLs checked this session, click to re-run any
+- 🔒 **Privacy-first** — no data stored or sent to any server except the threat APIs; all pattern checks run in the browser
+- ⚡ **No install needed** — single HTML file, works in any modern browser
 
 ---
 
 ## 🖥️ Demo
 
- **Live site:** [your-site-name.netlify.app](https://tsarolink.netlify.app/)
+🔗 **Live site:** [your-site-name.netlify.app](https://your-site-name.netlify.app)
 
 <!-- Replace the image below with a real screenshot after deployment -->
 <!-- ![Screenshot of Phishing URL Detector](./screenshot.png) -->
 
 ---
 
-##  How it works
+## 🏗️ How it works
 
 ```
 Browser (index.html)
@@ -49,7 +49,7 @@ The Netlify serverless function acts as a secure proxy — your API keys stay on
 
 ---
 
-##  Deploy your own
+## 🚀 Deploy your own
 
 ### 1. Clone the repo
 
@@ -114,7 +114,7 @@ If you spot a translation that could be improved, pull requests are welcome.
 
 ---
 
-## Security notes
+## 🔐 Security notes
 
 - **API keys** are stored as Netlify environment variables — never in code or exposed to the browser
 - **No user data** is logged or stored anywhere
@@ -123,7 +123,7 @@ If you spot a translation that could be improved, pull requests are welcome.
 
 ---
 
-##  Local development
+## 🛠️ Local development
 
 ```bash
 npm install -g netlify-cli
@@ -147,7 +147,7 @@ Pull requests are welcome. For major changes, open an issue first to discuss wha
 
 ---
 
-## Author
+## 👤 Author
 
 **Adam** ([@dukwancy](https://x.com/dukwancy)) — Cybersecurity graduate, NYSC corps member, Web3 & cybersecurity educator creating content in English and Hausa for Nigerian audiences.
 
