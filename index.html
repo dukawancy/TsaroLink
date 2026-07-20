@@ -1556,7 +1556,7 @@
         historyAgo: (m) => m < 1 ? 'just now' : m === 1 ? '1 min ago' : `${m} min ago`,
         deepScanBtn: 'Run deep scan (live threat databases)',
         deepScanTitle: 'Live Threat Database Results',
-        deepScanLoading: 'Checking URLScan.io, URLhaus and VirusTotal...',
+        deepScanLoading: 'Checking URLScan.io and VirusTotal...',
         dsVirusTotalName: 'VirusTotal',
         dsFlaggedKnown: 'Flagged as a known threat',
         dsNotFlagged: 'Not found in threat database',
@@ -1616,7 +1616,7 @@
         historyAgo: (m) => m < 1 ? 'yanzu' : m === 1 ? 'minti 1 da ya wuce' : `minti ${m} da ya wuce`,
         deepScanBtn: 'Gudanar da bincike mai zurfi (bayanan tsaro na zahiri)',
         deepScanTitle: 'Sakamakon Bayanan Tsaro na Zahiri',
-        deepScanLoading: 'Ana bincika URLScan.io, URLhaus da VirusTotal...',
+        deepScanLoading: 'Ana bincika URLScan.io da VirusTotal...',
         dsVirusTotalName: 'VirusTotal',
         dsFlaggedKnown: 'An yi alama a matsayin sanannen haɗari',
         dsNotFlagged: 'Ba a samu a cikin bayanan haɗari ba',
@@ -2010,16 +2010,6 @@ Give a SHORT plain-English verdict in 4–6 sentences. State clearly if it looks
           rows += dsRow('bad', icon('x'), 'URLScan.io', `${S.dsFlaggedKnown}${us.tags?.length ? ' — tags: ' + us.tags.join(', ') : ''} (score: ${us.score}/100)`);
         } else {
           rows += dsRow('good', icon('check'), 'URLScan.io', `No malicious verdict — scan score: ${us.score}/100`);
-        }
-
-        // URLhaus row
-        const uh = data.urlhaus;
-        if (!uh || !uh.available) {
-          rows += dsRow('muted', icon('minus'), 'URLhaus', S.dsUnavailable);
-        } else if (uh.flagged) {
-          rows += dsRow('bad', icon('x'), 'URLhaus', `Malware URL active — threat: ${uh.threat || 'unknown'}${uh.tags?.length ? ' [' + uh.tags.join(', ') + ']' : ''}`);
-        } else {
-          rows += dsRow('good', icon('check'), 'URLhaus', S.dsNotFlagged);
         }
 
         // VirusTotal row

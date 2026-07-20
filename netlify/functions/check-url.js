@@ -1,12 +1,11 @@
 // netlify/functions/check-url.js
 //
-// Serverless function that checks a URL against three real threat
+// Serverless function that checks a URL against two real threat
 // intelligence databases:
 //   1. URLScan.io — URL reputation lookup, prior scan history (free, no key needed)
-//   2. URLhaus    — malware URL database by abuse.ch (free, no key needed)
-//   3. VirusTotal — deep scan across 70+ AV/security engines (free API key)
+//   2. VirusTotal — deep scan across 70+ AV/security engines (free API key)
 //
-// URLScan.io and URLhaus require NO API key — completely free.
+// URLScan.io requires NO API key — completely free.
 // Only VirusTotal needs a key (free tier: 500 req/day).
 //
 // Set in Netlify dashboard → Environment variables:
@@ -66,23 +65,18 @@ exports.handler = async (event) => {
     };
   }
 
-  // Run all three checks in parallel
-  const [openPhishResult, urlhausResult, virusTotalResult] = await Promise.allSettled([
+  // Run both checks in parallel
+  const [urlscanResult, virusTotalResult] = await Promise.allSettled([
     checkURLScan(url),
-    checkURLhaus(url),
     checkVirusTotal(url),
   ]);
 
   const response = {
     url,
     urlscan:
-      openPhishResult.status === 'fulfilled'
-        ? openPhishResult.value
-        : { available: false, error: openPhishResult.reason?.message || 'URLScan check failed' },
-    urlhaus:
-      urlhausResult.status === 'fulfilled'
-        ? urlhausResult.value
-        : { available: false, error: urlhausResult.reason?.message || 'URLhaus check failed' },
+      urlscanResult.status === 'fulfilled'
+        ? urlscanResult.value
+        : { available: false, error: urlscanResult.reason?.message || 'URLScan check failed' },
     virusTotal:
       virusTotalResult.status === 'fulfilled'
         ? virusTotalResult.value
@@ -148,45 +142,6 @@ async function checkURLScan(url) {
   }
 }
 
-// ── URLhaus ───────────────────────────────────────────────────────
-// Completely free, no API key required at all.
-// Docs: https://urlhaus-api.abuse.ch/
-async function checkURLhaus(url) {
-  const res = await fetch('https://urlhaus-api.abuse.ch/v1/url/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ url }).toString(),
-  });
-
-  if (!res.ok) {
-    throw new Error(`URLhaus API error: ${res.status}`);
-  }
-
-  const data = await res.json();
-
-  if (data.query_status === 'no_results') {
-    return {
-      available: true,
-      flagged: false,
-      status: 'not_found',
-      message: 'Not found in URLhaus malware database',
-    };
-  }
-
-  const flagged = data.query_status === 'is_phishing' ||
-                  data.query_status === 'is_malware' ||
-                  data.url_status === 'online' ||
-                  data.url_status === 'unknown';
-
-  return {
-    available: true,
-    flagged: data.url_status === 'online',
-    status: data.url_status || data.query_status,
-    threat: data.threat || null,
-    tags: data.tags || [],
-    dateAdded: data.date_added || null,
-  };
-}
 
 // ── VirusTotal URL check ──────────────────────────────────────────
 async function checkVirusTotal(url) {
