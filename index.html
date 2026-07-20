@@ -1200,6 +1200,200 @@
 
     /* ── Keyframes shared ────────────────────────────────────── */
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ════════════════════════════════════════════════════════════
+       RESPONSIVE DESIGN
+       small-desktop : 769px – 1024px
+       tablet        : 481px – 768px
+       mobile        : ≤ 480px
+       sm-mobile     : ≤ 380px
+    ════════════════════════════════════════════════════════════ */
+
+    /* Small desktop / large tablet */
+    @media (max-width: 1024px) {
+      body { padding: 2rem 1.25rem 4rem; }
+      .card, .history-card, .how-card { max-width: 100%; }
+      .header { max-width: 100%; }
+    }
+
+    /* Tablet (≤ 768px) */
+    @media (max-width: 768px) {
+      body { padding: 1.75rem 1rem 4rem; }
+
+      .theme-toggle { top: 0.85rem; right: 0.85rem; width: 36px; height: 36px; }
+
+      .header { margin-bottom: 1.75rem; }
+      .logo-mark { width: 60px; height: 60px; margin-bottom: 1rem; }
+      .logo-wordmark { font-size: 26px; }
+      h1 { font-size: clamp(1.5rem, 5vw, 2rem); }
+      .tagline { font-size: 14px; }
+
+      .card { padding: 1.5rem; border-radius: 16px; }
+      .history-card, .how-card { padding: 1.25rem 1.5rem; border-radius: 16px; }
+
+      .mode-tab { font-size: 12px; gap: 5px; }
+      .url-input { font-size: 12px; }
+      .check-btn { padding: 0 16px; font-size: 12px; }
+
+      .flags-grid { grid-template-columns: 1fr; }
+      .signals { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+      .deep-scan-btn, .ai-btn, .share-btn { font-size: 12.5px; }
+
+      .hash-input-wrap { flex-direction: column; gap: 8px; }
+      .hash-check-btn { width: 100%; }
+      .file-info-top { flex-wrap: wrap; }
+      .file-rescan { width: 100%; text-align: center; }
+    }
+
+    /* Mobile (≤ 480px) */
+    @media (max-width: 480px) {
+      body { padding: 1.25rem 0.75rem 3.5rem; }
+
+      .theme-toggle { top: 0.65rem; right: 0.65rem; width: 34px; height: 34px; }
+      .theme-toggle svg { width: 16px; height: 16px; }
+
+      .header { margin-bottom: 1.25rem; }
+      .logo-mark { width: 52px; height: 52px; margin-bottom: 0.85rem; }
+      .logo-wordmark { font-size: 22px; }
+      .logo-badge { font-size: 9px; padding: 4px 10px; margin-bottom: 0.85rem; }
+      h1 { font-size: 1.45rem; margin-bottom: 0.6rem; }
+      .tagline { font-size: 13px; line-height: 1.6; }
+
+      .lang-btn { padding: 5px 12px; font-size: 11px; }
+      .lang-toggle { margin-bottom: 1rem; }
+
+      .card { padding: 1.1rem; border-radius: 14px; margin-bottom: 0.75rem; }
+      .history-card, .how-card { padding: 1rem 1.1rem; border-radius: 14px; }
+
+      .mode-tabs { margin-bottom: 1rem; }
+      .mode-tab { font-size: 11px; height: 36px; gap: 4px; }
+      .mode-tab svg { width: 13px; height: 13px; }
+
+      /* Stack scan bar vertically on mobile */
+      .scan-bar {
+        flex-direction: column;
+        align-items: stretch;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        overflow: visible;
+      }
+      .scan-bar:focus-within { border-color: transparent; box-shadow: none; }
+      .scan-prefix { display: none; }
+      .url-input {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--bg);
+        padding: 13px 14px;
+        font-size: 13px;
+        width: 100%;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .url-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+        outline: none;
+      }
+      .check-btn {
+        width: 100%;
+        height: 46px;
+        margin-top: 8px;
+        border-radius: var(--radius);
+        justify-content: center;
+        font-size: 14px;
+        padding: 0 20px;
+      }
+
+      .divider { margin: 1rem 0; }
+
+      .verdict-row { gap: 12px; margin-bottom: 1.1rem; }
+      .verdict-icon { width: 46px; height: 46px; border-radius: 12px; }
+      .verdict-icon svg { width: 22px; height: 22px; }
+      .verdict-text-label { font-size: 15px; }
+      .verdict-url { font-size: 11px; }
+
+      .score-section { margin-bottom: 1rem; }
+      .score-meta { font-size: 11px; }
+
+      .flags-grid { grid-template-columns: 1fr; gap: 6px; margin-bottom: 1rem; }
+      .flag { font-size: 12px; padding: 10px 11px; }
+      .tip { font-size: 12.5px; padding: 11px 12px; }
+
+      .deep-scan-btn { height: 42px; font-size: 12px; }
+      .deep-scan-btn svg { width: 14px; height: 14px; }
+      .deep-scan-box { padding: 12px 13px; }
+      .ds-source { font-size: 12px; }
+      .ds-detail { font-size: 11.5px; }
+
+      .ai-btn { height: 42px; font-size: 12px; }
+      .ai-btn svg { width: 14px; height: 14px; }
+      .ai-box { padding: 12px 13px; }
+      .ai-text { font-size: 13px; }
+
+      .share-btn { height: 42px; font-size: 12px; }
+
+      .drop-zone { padding: 2rem 1rem 1.75rem; }
+      .drop-icon-wrap { width: 50px; height: 50px; }
+      .drop-icon-wrap svg { width: 22px; height: 22px; }
+      .drop-title { font-size: 14px; }
+      .drop-sub { font-size: 11.5px; }
+
+      .file-info { padding: 1rem; }
+      .file-info-top { gap: 10px; }
+      .file-type-icon { width: 40px; height: 40px; }
+      .file-name { font-size: 12px; }
+      .file-meta { font-size: 11px; }
+      .file-rescan { width: 100%; text-align: center; margin-top: 4px; }
+
+      .hash-row { padding: 9px 10px; }
+      .hash-algo { min-width: 48px; font-size: 9px; }
+      .hash-value { font-size: 10px; }
+      .hash-input-wrap { flex-direction: column; }
+      .hash-check-btn { width: 100%; }
+      .hash-input { font-size: 11px; }
+      .hash-progress { padding: 1.1rem; }
+      .hash-progress-file { font-size: 10px; }
+
+      .file-action-btn { height: 40px; font-size: 12px; }
+
+      .how-card h2 { font-size: 10px; }
+      .signals { grid-template-columns: 1fr 1fr; gap: 4px; }
+      .signal { font-size: 12px; padding: 5px 0; }
+
+      .history-host { font-size: 11.5px; }
+      .history-meta { font-size: 10px; }
+      .history-score { font-size: 11px; }
+
+      footer { font-size: 11px; line-height: 1.7; margin-top: 2rem; }
+    }
+
+    /* Very small mobile (≤ 380px) */
+    @media (max-width: 380px) {
+      body { padding: 1rem 0.6rem 3rem; }
+      .card { padding: 0.9rem; }
+      h1 { font-size: 1.3rem; }
+      .logo-wordmark { font-size: 20px; }
+      .logo-mark { width: 46px; height: 46px; }
+
+      /* Hide tab labels — icons only */
+      .mode-tab { font-size: 0; gap: 0; padding: 0 10px; }
+      .mode-tab svg { width: 16px; height: 16px; }
+
+      .check-btn { font-size: 13px; }
+      .verdict-text-label { font-size: 14px; }
+      .signals { grid-template-columns: 1fr; }
+    }
+
+    /* Touch device refinements */
+    @media (hover: none) and (pointer: coarse) {
+      .history-item:hover { transform: none; }
+      .drop-zone:hover { transform: none; }
+      .check-btn:hover { opacity: 1; }
+      .hash-copy { width: 36px; height: 36px; }
+      .history-clear { padding: 6px 4px; }
+      .lang-btn { padding: 8px 14px; }
+      .mode-tab { height: 42px; }
+    }
   </style>
 </head>
 <body>
